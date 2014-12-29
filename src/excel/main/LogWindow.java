@@ -23,11 +23,16 @@
  */
 package excel.main;
 
+import java.awt.BorderLayout;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Insets;
 import java.text.DateFormat;
 import java.util.Date;
+import javax.swing.Box;
 import javax.swing.JFrame;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 
@@ -42,14 +47,22 @@ public class LogWindow extends JFrame {
     public LogWindow()
     {
         setTitle("Logi aplikacji");
-        setSize(600, 600);
 
+        Container c = getContentPane();
+        c.setLayout(new BorderLayout(0, 0));
+        
         area = new JTextArea();
-
-        area.setPreferredSize(new Dimension(-1, -1));
         area.setEditable(false);
-
-        add(area);
+        area.setMargin(new Insets(6, 6, 6, 6));
+        
+        JScrollPane areaScroll = new JScrollPane(area);
+        areaScroll.setPreferredSize(new Dimension(-1, -1));
+        
+        c.add(Box.createVerticalStrut(10), BorderLayout.PAGE_START);
+        c.add(Box.createHorizontalStrut(10), BorderLayout.LINE_START);
+        c.add(areaScroll, BorderLayout.CENTER);
+        c.add(Box.createHorizontalStrut(10), BorderLayout.LINE_END);
+        c.add(Box.createVerticalStrut(10), BorderLayout.PAGE_END);
     }
 
     public void addLine(final String text)
