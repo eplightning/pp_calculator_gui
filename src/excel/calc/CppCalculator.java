@@ -69,8 +69,9 @@ public class CppCalculator implements Calculator {
      */
     private Watchdog watchdogThread;
     
-    public CppCalculator() throws IOException
+    public CppCalculator(Logger log) throws IOException
     {
+        logger = log;
         watchdogPleaseDie = false;
         
         if (System.getProperty("os.name").startsWith("Windows")) {
@@ -188,6 +189,8 @@ public class CppCalculator implements Calculator {
 
                     if (watchdogPleaseDie)
                         return;
+                    
+                    logger.addLine("Calculator process died, waiting for lock and spawning it again ...");
                     
                     calculatorLock.lock();
                     

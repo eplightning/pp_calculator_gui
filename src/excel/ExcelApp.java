@@ -70,7 +70,7 @@ public class ExcelApp extends JFrame {
         logWnd.setVisible(false);
         
         try {
-            calc = new CppCalculator();
+            calc = new CppCalculator(logWnd);
         } catch (IOException ex) {
             System.exit(1);
         }
