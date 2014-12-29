@@ -26,7 +26,6 @@ package excel.main;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.text.DateFormat;
 import java.util.Date;

@@ -4,6 +4,7 @@ import excel.main.LogWindow;
 import excel.main.StatusBar;
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.ImageIcon;
@@ -78,39 +79,30 @@ public class ExcelApp extends JFrame {
         // toolbar
         toolBar = new JToolBar();
         toolBar.setFloatable(false);
+        toolBar.setRequestFocusEnabled(false);
 
         JButton btn = new JButton("Nowy");
         btn.setIcon(new ImageIcon(getClass().getResource("/excel/main/icons/new.png")));
-        btn.setBorderPainted(false);
-        btn.setFocusPainted(false);
         btn.addActionListener(new NewSheetAction());
         toolBar.add(btn);
 
         btn = new JButton("Otwórz");
         btn.setIcon(new ImageIcon(getClass().getResource("/excel/main/icons/open.png")));
-        btn.setBorderPainted(false);
-        btn.setFocusPainted(false);
         btn.addActionListener(new OpenSheetAction());
         toolBar.add(btn);
 
         btn = new JButton("Zapisz");
         btn.setIcon(new ImageIcon(getClass().getResource("/excel/main/icons/save.png")));
-        btn.setBorderPainted(false);
-        btn.setFocusPainted(false);
         btn.addActionListener(new SaveSheetAction());
         toolBar.add(btn);
 
         btn = new JButton("Zapisz jako");
         btn.setIcon(new ImageIcon(getClass().getResource("/excel/main/icons/save_as.png")));
-        btn.setBorderPainted(false);
-        btn.setFocusPainted(false);
         btn.addActionListener(new SaveAsSheetAction());
         toolBar.add(btn);
 
         btn = new JButton("Logi");
         btn.setIcon(new ImageIcon(getClass().getResource("/excel/main/icons/logs.png")));
-        btn.setBorderPainted(false);
-        btn.setFocusPainted(false);
         btn.addActionListener(new DebugAction());
         toolBar.add(btn);
 
