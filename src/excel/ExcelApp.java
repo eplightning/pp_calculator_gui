@@ -1,12 +1,14 @@
 package excel;
 
+import excel.calc.CppCalculator;
 import excel.main.LogWindow;
 import excel.main.StatusBar;
 import java.awt.BorderLayout;
 import java.awt.Container;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -16,6 +18,7 @@ import javax.swing.UIManager;
 
 public class ExcelApp extends JFrame {
 
+    protected CppCalculator calc;
     protected LogWindow logWnd;
     protected StatusBar statusBar;
     protected JToolBar toolBar;
@@ -65,6 +68,12 @@ public class ExcelApp extends JFrame {
 
         logWnd = new LogWindow();
         logWnd.setVisible(false);
+        
+        try {
+            calc = new CppCalculator();
+        } catch (IOException ex) {
+            System.exit(1);
+        }
     }
 
     /**
@@ -111,6 +120,10 @@ public class ExcelApp extends JFrame {
         // status bar
         statusBar = new StatusBar();
         c.add(statusBar, BorderLayout.PAGE_END);
+        
+        // pusta przestrzeń lewo prawo
+        c.add(Box.createHorizontalStrut(1), BorderLayout.LINE_START);
+        c.add(Box.createHorizontalStrut(1), BorderLayout.LINE_END);
     }
 
     class NewSheetAction implements ActionListener {

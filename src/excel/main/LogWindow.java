@@ -23,6 +23,7 @@
  */
 package excel.main;
 
+import excel.Logger;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -39,7 +40,7 @@ import javax.swing.SwingUtilities;
  *
  * @author eplightning
  */
-public class LogWindow extends JFrame {
+public class LogWindow extends JFrame implements Logger {
 
     protected JTextArea area;
 
@@ -64,6 +65,12 @@ public class LogWindow extends JFrame {
         c.add(Box.createVerticalStrut(10), BorderLayout.PAGE_END);
     }
 
+    /**
+     * Dodaj linie tekstu do loggera
+     * 
+     * @param text Tekst do zalogowania
+     */
+    @Override
     public void addLine(final String text)
     {
         Runnable op = new Runnable() {
