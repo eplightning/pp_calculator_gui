@@ -1,26 +1,79 @@
+/*
+ * The MIT License
+ *
+ * Copyright 2015 eplightning <eplightning at outlook dot com>.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package excel;
 
-import excel.calc.CppCalculator;
-import excel.main.LogWindow;
-import excel.main.StatusBar;
+import excel.calc.*;
+import excel.exportimport.*;
+import excel.exportimport.formats.*;
+import excel.main.*;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.io.IOException;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.JToolBar;
 import javax.swing.UIManager;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
+/**
+ * Główne okno aplikacji
+ * 
+ * @author eplightning <eplightning at outlook dot com>
+ */
 public class ExcelApp extends JFrame {
 
-    protected CppCalculator calc;
+    /**
+     * Instancja kalkulatora
+     */
+    protected Calculator calc;
+    
+    /**
+     * Okienko logowania
+     */
     protected LogWindow logWnd;
+    
+    /**
+     * Obecnie otwarty plik
+     */
+    protected File openedFile;
+    
+    /**
+     * Pasek dolny
+     */
     protected StatusBar statusBar;
+    
+    /**
+     * Toolbar górny
+     */
     protected JToolBar toolBar;
 
     /**
@@ -59,16 +112,21 @@ public class ExcelApp extends JFrame {
      */
     public ExcelApp(String[] args)
     {
+        // parametry okienka
         setTitle("Arkusz kalkulacyjny");
         setIconImage(new ImageIcon(getClass().getResource("/excel/main/icons/new.png")).getImage());
         setSize(1600, 900);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
+        // tworzymy elementy interfejsu
         setupUserInterface();
 
+        // okienko logowania
         logWnd = new LogWindow();
         logWnd.setVisible(false);
         
+        // próbujemy utworzyć kalkulator
+        // jak nie da rady to kończymy bo to sensu nie ma
         try {
             calc = new CppCalculator(logWnd);
         } catch (IOException ex) {
@@ -126,6 +184,9 @@ public class ExcelApp extends JFrame {
         c.add(Box.createHorizontalStrut(1), BorderLayout.LINE_END);
     }
 
+    /**
+     * Nowy arkusz
+     */
     class NewSheetAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent ae)
@@ -134,14 +195,41 @@ public class ExcelApp extends JFrame {
         }
     }
 
+    /**
+     * Otwórz arkusz
+     */
     class OpenSheetAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent ae)
         {
-            System.exit(0);
+            // dialog wyboru pliku
+            JFileChooser picker = new JFileChooser();
+            picker.addChoosableFileFilter(new FileNameExtensionFilter("CSV file", "csv"));
+            int result = picker.showOpenDialog(ExcelApp.this);
+            
+            // zatwierdzone
+            if (result == JFileChooser.APPROVE_OPTION) {
+                ExportImportData data;
+                
+                // wczytywanie danych z pliku
+                try {
+                    SheetFormatFactory factory = new SheetFormatFactory();
+                    SheetFormat format = factory.makeFormat(picker.getSelectedFile());
+                    
+                    data = format.loadFile(picker.getSelectedFile());
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(null, e.getMessage(), "Błąd wczytywania pliku", JOptionPane.ERROR_MESSAGE);
+                }
+                
+                // TODO: Ładowanie
+                openedFile = picker.getSelectedFile();
+            }
         }
     }
 
+    /**
+     * Zapisz arkusz
+     */
     class SaveSheetAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent ae)
@@ -150,6 +238,9 @@ public class ExcelApp extends JFrame {
         }
     }
 
+    /**
+     * Zapisz arkusz jako
+     */
     class SaveAsSheetAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent ae)
@@ -158,6 +249,9 @@ public class ExcelApp extends JFrame {
         }
     }
 
+    /**
+     * Konsola logowania
+     */
     class DebugAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent ae)
