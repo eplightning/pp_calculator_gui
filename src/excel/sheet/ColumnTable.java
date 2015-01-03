@@ -21,51 +21,69 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package excel.exportimport;
+package excel.sheet;
 
-import java.util.HashMap;
-import java.util.Map;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.TableModelEvent;
+import javax.swing.table.AbstractTableModel;
 
 /**
- * Informacje zwracane przez importer / exporter
+ * Kolumnowa tabela dla tytułów wierszy
  * 
  * @author eplightning <eplightning at outlook dot com>
  */
-public class ExportImportData {
+public class ColumnTable extends JTable {
     
-    protected HashMap<ExportImportLocation, String> cells;
     protected int rows;
-    protected int columns;
-
-    public ExportImportData()
-    {
-        cells = new HashMap<>();
-    }
     
-    public Map<ExportImportLocation, String> getCells()
+    public ColumnTable()
     {
-        return cells;
-    }
-
-    public int getRows()
-    {
-        return rows;
+        this.rows = 50;
+        
+        setRowHeight(25);
+        setRowSelectionAllowed(false);
+        setColumnSelectionAllowed(false);
+        setFillsViewportHeight(true);
+        setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        setModel(new Model());
     }
 
     public void setRows(int rows)
     {
-        this.rows = rows;
-    }
-
-    public int getColumns()
-    {
-        return columns;
-    }
-
-    public void setColumns(int columns)
-    {
-        this.columns = columns;
+        if (rows != this.rows) {
+            this.rows = rows;
+            tableChanged(new TableModelEvent(getModel()));
+        }
     }
     
+    protected class Model extends AbstractTableModel {
+        @Override
+        public int getRowCount()
+        {
+            return rows;
+        }
 
+        @Override
+        public int getColumnCount()
+        {
+            return 1;
+        }
+
+        @Override
+        public Object getValueAt(int i, int i1)
+        {
+            if (i1 != 0)
+                return null;
+
+            return Integer.toString(i + 1);
+        }
+
+        @Override
+        public String getColumnName(int i)
+        {
+            return "W\\K";
+        }
+    }
 }

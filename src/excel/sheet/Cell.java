@@ -21,51 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package excel.exportimport;
-
-import java.util.HashMap;
-import java.util.Map;
+package excel.sheet;
 
 /**
- * Informacje zwracane przez importer / exporter
+ * Wartość komórki
  * 
  * @author eplightning <eplightning at outlook dot com>
  */
-public class ExportImportData {
+public class Cell {
     
-    protected HashMap<ExportImportLocation, String> cells;
-    protected int rows;
-    protected int columns;
+    protected String formula;
 
-    public ExportImportData()
+    public String getFormula()
     {
-        cells = new HashMap<>();
-    }
-    
-    public Map<ExportImportLocation, String> getCells()
-    {
-        return cells;
+        return formula;
     }
 
-    public int getRows()
+    public void setFormula(String formula)
     {
-        return rows;
-    }
-
-    public void setRows(int rows)
-    {
-        this.rows = rows;
-    }
-
-    public int getColumns()
-    {
-        return columns;
-    }
-
-    public void setColumns(int columns)
-    {
-        this.columns = columns;
+        this.formula = formula;
     }
     
-
+    @Override
+    public String toString()
+    {
+        return formula;
+    }
 }

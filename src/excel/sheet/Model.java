@@ -21,67 +21,90 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package excel.exportimport;
+package excel.sheet;
+
+import java.util.HashMap;
+import javax.swing.table.AbstractTableModel;
 
 /**
- * Adres w strukturze import/exportu sheet'ów
+ * Model tabeli
  * 
  * @author eplightning <eplightning at outlook dot com>
  */
-public class ExportImportAddress {
-    
-    protected int column;
-    protected int row;
+public class Model extends AbstractTableModel {
 
-    public ExportImportAddress(int col, int row)
+    protected HashMap<Location, Cell> cells;
+    protected int rows;
+    protected int columns;
+    
+    public Model()
     {
-        this.column = col;
-        this.row = row;
+        cells = new HashMap<>();
+    }
+    
+    public HashMap<Location, Cell> getCells()
+    {
+        return cells;
+    }
+
+    public int getRows()
+    {
+        return rows;
+    }
+
+    public void setRows(int rows)
+    {
+        this.rows = rows;
+    }
+
+    public int getColumns()
+    {
+        return columns;
+    }
+
+    public void setColumns(int columns)
+    {
+        this.columns = columns;
     }
     
     @Override
-    public int hashCode()
+    public int getRowCount()
     {
-        return row * 1000 + column;
+        return rows > 50 ? rows : 50;
     }
 
     @Override
-    public boolean equals(Object obj)
+    public int getColumnCount()
     {
-        if (obj == null) {
-            return false;
-        }
-        
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        
-        final ExportImportAddress other = (ExportImportAddress) obj;
-        
-        if (this.column != other.column) {
-            return false;
-        }
-        
-        return this.row == other.row;
+        return columns > 50 ? columns : 50;
     }
     
-    public int getColumn()
+    @Override
+    public String getColumnName(int i)
     {
-        return column;
+        return Integer.toString(i + 1);
+    }
+    
+    @Override
+    public Object getValueAt(int i, int i1)
+    {
+        return cells.get(new Location(i1 + 1, i + 1));
     }
 
-    public int getRow()
+    @Override
+    public void setValueAt(Object o, int i, int i1)
     {
-        return row;
+        Cell cell = new Cell();
+        
+        cell.setFormula(o.toString());
+        
+        cells.put(new Location(i1 + 1, i + 1), cell);
     }
 
-    public void setColumn(int column)
+    @Override
+    public boolean isCellEditable(int i, int i1)
     {
-        this.column = column;
+        return true;
     }
-
-    public void setRow(int row)
-    {
-        this.row = row;
-    }
+    
 }

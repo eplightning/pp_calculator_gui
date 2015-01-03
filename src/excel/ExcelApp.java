@@ -27,6 +27,7 @@ import excel.calc.*;
 import excel.exportimport.*;
 import excel.exportimport.formats.*;
 import excel.main.*;
+import excel.sheet.Sheet;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
@@ -65,6 +66,11 @@ public class ExcelApp extends JFrame {
      * Obecnie otwarty plik
      */
     protected File openedFile;
+    
+    /**
+     * Arkusz
+     */
+    protected Sheet sheet;
     
     /**
      * Pasek dolny
@@ -132,8 +138,28 @@ public class ExcelApp extends JFrame {
         } catch (IOException ex) {
             System.exit(1);
         }
+        
+        // pusty arkusz
+        sheet = new Sheet(calc, logWnd);
+        getContentPane().add(sheet, BorderLayout.CENTER);
     }
 
+    /**
+     * Zastąpienie starego arkusza
+     * 
+     * @param newSheet Nowy arkusz
+     */
+    private void replaceSheet(Sheet newSheet)
+    {
+        Container c = getContentPane();
+        
+        c.remove(sheet);
+        
+        sheet = newSheet;
+        c.add(sheet, BorderLayout.CENTER);
+        validate();
+    }
+    
     /**
      * Tworzenie kontrolek głównych
      */
@@ -141,7 +167,7 @@ public class ExcelApp extends JFrame {
     {
         // ustawiamy layout
         Container c = getContentPane();
-        c.setLayout(new BorderLayout(0, 0));
+        c.setLayout(new BorderLayout(5, 5));
 
         // toolbar
         toolBar = new JToolBar();
@@ -191,7 +217,12 @@ public class ExcelApp extends JFrame {
         @Override
         public void actionPerformed(ActionEvent ae)
         {
-            System.exit(0);
+            if (sheet.isModified()) {
+                // TODO: Czy chcesz utracić ...
+            }
+            
+            openedFile = null;
+            replaceSheet(new Sheet(calc, logWnd));
         }
     }
 
@@ -202,6 +233,10 @@ public class ExcelApp extends JFrame {
         @Override
         public void actionPerformed(ActionEvent ae)
         {
+            if (sheet.isModified()) {
+                // TODO: Czy chcesz utracić ...
+            }
+            
             // dialog wyboru pliku
             JFileChooser picker = new JFileChooser();
             picker.addChoosableFileFilter(new FileNameExtensionFilter("CSV file", "csv"));
@@ -211,6 +246,9 @@ public class ExcelApp extends JFrame {
             if (result == JFileChooser.APPROVE_OPTION) {
                 ExportImportData data;
                 
+                logWnd.addLine("Wczytywanie pliku " + picker.getSelectedFile().getName());
+                statusBar.setState("Wczytywanie ...");
+                
                 // wczytywanie danych z pliku
                 try {
                     SheetFormatFactory factory = new SheetFormatFactory();
@@ -218,10 +256,15 @@ public class ExcelApp extends JFrame {
                     
                     data = format.loadFile(picker.getSelectedFile());
                 } catch (IOException e) {
+                    logWnd.addLine(e.getMessage());
                     JOptionPane.showMessageDialog(null, e.getMessage(), "Błąd wczytywania pliku", JOptionPane.ERROR_MESSAGE);
+                    return;
                 }
                 
-                // TODO: Ładowanie
+                statusBar.setState("Gotowe");
+                
+                Sheet newSheet = new Sheet(calc, logWnd, data);
+                replaceSheet(newSheet);
                 openedFile = picker.getSelectedFile();
             }
         }
@@ -234,7 +277,14 @@ public class ExcelApp extends JFrame {
         @Override
         public void actionPerformed(ActionEvent ae)
         {
-            System.exit(0);
+            if (openedFile == null) {
+                SaveAsSheetAction passingTheEvent = new SaveAsSheetAction();
+                
+                passingTheEvent.actionPerformed(ae);
+                return;
+            }
+            
+            // TODO: Zapis
         }
     }
 
@@ -245,7 +295,7 @@ public class ExcelApp extends JFrame {
         @Override
         public void actionPerformed(ActionEvent ae)
         {
-            System.exit(0);
+            // TODO: Zapis
         }
     }
 

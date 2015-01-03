@@ -23,7 +23,7 @@
  */
 package excel.exportimport.formats;
 
-import excel.exportimport.ExportImportAddress;
+import excel.exportimport.ExportImportLocation;
 import excel.exportimport.ExportImportData;
 import java.io.File;
 import java.io.FileReader;
@@ -75,7 +75,7 @@ public class SheetFormatCsv implements SheetFormat {
                     stringRead = true;
 
                     if (text.length() > 0) {
-                        data.getCells().put(new ExportImportAddress(column, row), text.toString());
+                        data.getCells().put(new ExportImportLocation(column, row), text.toString());
                         text = new StringBuilder();
                     }
                 } else {
@@ -128,7 +128,7 @@ public class SheetFormatCsv implements SheetFormat {
                     writer.write(',');
         
                 // pobieramy wartość
-                String val = data.getCells().get(new ExportImportAddress(j, i));
+                String val = data.getCells().get(new ExportImportLocation(j, i));
                 
                 // jeśli nie znaleźliśmy to znaczy że puste
                 if (val != null && !val.isEmpty()) {

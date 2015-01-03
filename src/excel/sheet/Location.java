@@ -21,51 +21,67 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package excel.exportimport;
-
-import java.util.HashMap;
-import java.util.Map;
+package excel.sheet;
 
 /**
- * Informacje zwracane przez importer / exporter
+ * Adres komórki
  * 
  * @author eplightning <eplightning at outlook dot com>
  */
-public class ExportImportData {
+public class Location {
     
-    protected HashMap<ExportImportLocation, String> cells;
-    protected int rows;
-    protected int columns;
+    protected int column;
+    protected int row;
 
-    public ExportImportData()
+    public Location(int col, int row)
     {
-        cells = new HashMap<>();
-    }
-    
-    public Map<ExportImportLocation, String> getCells()
-    {
-        return cells;
-    }
-
-    public int getRows()
-    {
-        return rows;
-    }
-
-    public void setRows(int rows)
-    {
-        this.rows = rows;
-    }
-
-    public int getColumns()
-    {
-        return columns;
-    }
-
-    public void setColumns(int columns)
-    {
-        this.columns = columns;
+        this.column = col;
+        this.row = row;
     }
     
+    @Override
+    public int hashCode()
+    {
+        return row * 1000 + column;
+    }
 
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (obj == null) {
+            return false;
+        }
+        
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        
+        final Location other = (Location) obj;
+        
+        if (this.column != other.column) {
+            return false;
+        }
+        
+        return this.row == other.row;
+    }
+    
+    public int getColumn()
+    {
+        return column;
+    }
+
+    public int getRow()
+    {
+        return row;
+    }
+
+    public void setColumn(int column)
+    {
+        this.column = column;
+    }
+
+    public void setRow(int row)
+    {
+        this.row = row;
+    }
 }

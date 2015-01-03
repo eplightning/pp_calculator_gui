@@ -21,51 +21,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package excel.exportimport;
+package excel.sheet;
 
-import java.util.HashMap;
-import java.util.Map;
+import javax.swing.JTable;
 
 /**
- * Informacje zwracane przez importer / exporter
+ * Rozszerzenie JTable dla arkusza
  * 
  * @author eplightning <eplightning at outlook dot com>
  */
-public class ExportImportData {
+public class Table extends JTable {
     
-    protected HashMap<ExportImportLocation, String> cells;
-    protected int rows;
-    protected int columns;
-
-    public ExportImportData()
+    public Table()
     {
-        cells = new HashMap<>();
+        setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        setColumnSelectionAllowed(false);
+        setFillsViewportHeight(true);
+        setRowSelectionAllowed(false);
+        setColumnSelectionAllowed(false);
+        setRowHeight(25);
     }
-    
-    public Map<ExportImportLocation, String> getCells()
-    {
-        return cells;
-    }
-
-    public int getRows()
-    {
-        return rows;
-    }
-
-    public void setRows(int rows)
-    {
-        this.rows = rows;
-    }
-
-    public int getColumns()
-    {
-        return columns;
-    }
-
-    public void setColumns(int columns)
-    {
-        this.columns = columns;
-    }
-    
-
 }
