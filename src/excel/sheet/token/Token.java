@@ -21,78 +21,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package excel.sheet;
+package excel.sheet.token;
 
 /**
- * Komórka
+ * Interfejs tokenu
  * 
  * @author eplightning <eplightning at outlook dot com>
  */
-public class Cell {
+public interface Token {
     
-    protected boolean calculated;
-    protected String error;
-    protected String formula;
-    protected String value;
-
-    public Cell()
-    {
-        error = null;
-        calculated = false;
-        formula = null;
-        value = null;
-    }
-    
-    public String getFormula()
-    {
-        return formula;
-    }
-
-    public void setFormula(String formula)
-    {
-        this.formula = formula;
-    }
-
-    public boolean isCalculated()
-    {
-        return calculated;
-    }
-
-    public void setCalculated(boolean calculated)
-    {
-        this.calculated = calculated;
-    }
-
-    public String getError()
-    {
-        return error;
-    }
-
-    public void setError(String error)
-    {
-        this.error = error;
-    }
-
-    public String getValue()
-    {
-        return value;
-    }
-
-    public void setValue(String value)
-    {
-        this.value = value;
-    }
-    
-    @Override
-    public String toString()
-    {
-        if (formula.length() <= 0 || formula.charAt(0) != '=' || !isCalculated()) {
-            return formula;
-        }
-        
-        if (error != null)
-            return error;
-
-        return value;
-    }
+    /**
+     * Rodzaj tokenu
+     * 
+     * @return Enum tokenu
+     */
+    public TokenType type();
 }

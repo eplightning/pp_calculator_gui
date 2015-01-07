@@ -21,78 +21,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package excel.sheet;
+package excel.sheet.token.tokens;
+
+import excel.sheet.token.Token;
+import excel.sheet.token.TokenType;
 
 /**
- * Komórka
+ * Token liczby naturalnej
  * 
  * @author eplightning <eplightning at outlook dot com>
  */
-public class Cell {
+public class IntegerToken implements Token {
+
+    /**
+     * Wartość
+     */
+    protected int value;
     
-    protected boolean calculated;
-    protected String error;
-    protected String formula;
-    protected String value;
-
-    public Cell()
+    public IntegerToken(String integer)
     {
-        error = null;
-        calculated = false;
-        formula = null;
-        value = null;
-    }
-    
-    public String getFormula()
-    {
-        return formula;
+        value = Integer.parseInt(integer, 10);
     }
 
-    public void setFormula(String formula)
-    {
-        this.formula = formula;
-    }
-
-    public boolean isCalculated()
-    {
-        return calculated;
-    }
-
-    public void setCalculated(boolean calculated)
-    {
-        this.calculated = calculated;
-    }
-
-    public String getError()
-    {
-        return error;
-    }
-
-    public void setError(String error)
-    {
-        this.error = error;
-    }
-
-    public String getValue()
+    public int getValue()
     {
         return value;
-    }
-
-    public void setValue(String value)
-    {
-        this.value = value;
     }
     
     @Override
-    public String toString()
+    public TokenType type()
     {
-        if (formula.length() <= 0 || formula.charAt(0) != '=' || !isCalculated()) {
-            return formula;
-        }
-        
-        if (error != null)
-            return error;
-
-        return value;
+        return TokenType.INTEGER;
     }
+    
 }

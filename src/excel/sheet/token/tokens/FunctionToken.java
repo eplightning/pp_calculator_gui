@@ -21,78 +21,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package excel.sheet;
+package excel.sheet.token.tokens;
+
+import excel.sheet.token.Token;
+import excel.sheet.token.TokenType;
 
 /**
- * Komórka
+ * Token początku funkcji
  * 
  * @author eplightning <eplightning at outlook dot com>
  */
-public class Cell {
+public class FunctionToken implements Token {
     
-    protected boolean calculated;
-    protected String error;
-    protected String formula;
-    protected String value;
-
-    public Cell()
-    {
-        error = null;
-        calculated = false;
-        formula = null;
-        value = null;
-    }
+    /**
+     * Nazwa funkcji
+     */
+    protected String name;
     
-    public String getFormula()
+    /**
+     * Nawias domknięty?
+     */
+    protected boolean closed;
+    
+    public FunctionToken(String name, boolean closed)
     {
-        return formula;
+        this.name = name.toLowerCase();
+        this.closed = closed;
     }
 
-    public void setFormula(String formula)
+    public boolean isClosed()
     {
-        this.formula = formula;
-    }
-
-    public boolean isCalculated()
-    {
-        return calculated;
-    }
-
-    public void setCalculated(boolean calculated)
-    {
-        this.calculated = calculated;
-    }
-
-    public String getError()
-    {
-        return error;
-    }
-
-    public void setError(String error)
-    {
-        this.error = error;
-    }
-
-    public String getValue()
-    {
-        return value;
-    }
-
-    public void setValue(String value)
-    {
-        this.value = value;
+        return closed;
     }
     
+    public String getName()
+    {
+        return name;
+    }
+
     @Override
-    public String toString()
+    public TokenType type()
     {
-        if (formula.length() <= 0 || formula.charAt(0) != '=' || !isCalculated()) {
-            return formula;
-        }
-        
-        if (error != null)
-            return error;
-
-        return value;
+        return TokenType.FUNCTION_START;
     }
 }

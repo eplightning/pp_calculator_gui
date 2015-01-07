@@ -21,78 +21,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package excel.sheet;
+package excel.sheet.token;
 
 /**
- * Komórka
+ * Wyjątki tokenizera
  * 
  * @author eplightning <eplightning at outlook dot com>
  */
-public class Cell {
+public class TokenizerException extends Exception {
     
-    protected boolean calculated;
-    protected String error;
-    protected String formula;
-    protected String value;
-
-    public Cell()
-    {
-        error = null;
-        calculated = false;
-        formula = null;
-        value = null;
-    }
+    /**
+     * Który znak stringa
+     */
+    protected int character;
     
-    public String getFormula()
+    public TokenizerException(String error)
     {
-        return formula;
-    }
-
-    public void setFormula(String formula)
-    {
-        this.formula = formula;
-    }
-
-    public boolean isCalculated()
-    {
-        return calculated;
-    }
-
-    public void setCalculated(boolean calculated)
-    {
-        this.calculated = calculated;
-    }
-
-    public String getError()
-    {
-        return error;
-    }
-
-    public void setError(String error)
-    {
-        this.error = error;
-    }
-
-    public String getValue()
-    {
-        return value;
-    }
-
-    public void setValue(String value)
-    {
-        this.value = value;
-    }
-    
-    @Override
-    public String toString()
-    {
-        if (formula.length() <= 0 || formula.charAt(0) != '=' || !isCalculated()) {
-            return formula;
-        }
+        super(error);
         
-        if (error != null)
-            return error;
+        character = -1;
+    }
+    
+    public TokenizerException(String error, int it)
+    {
+        super(error);
+        
+        character = it;
+    }
+    
+    public TokenizerException(String error, Throwable throwable)
+    {
+        super(error, throwable);
+        
+        character = -1;
+    }
 
-        return value;
+    @Override
+    public String getMessage()
+    {
+        if (character > -1)
+            return String.format("SheetTokenizer: %s [%d]", super.getMessage(), character);
+        
+        return "SheetTokenizer: " + super.getMessage();
     }
 }
