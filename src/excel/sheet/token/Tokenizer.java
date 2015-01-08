@@ -83,8 +83,12 @@ public class Tokenizer {
         // znak po znaku
         int len = input.length();
         char chr;
+        int it = 0;
         
-        for (int it = 0; it < len; it++) {
+        if (len > 0 && input.charAt(0) == '=')
+            it = 1;
+        
+        for (; it < len; it++) {
             chr = input.charAt(it);
             
             // stan 1: zewnątrz

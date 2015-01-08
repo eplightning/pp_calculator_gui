@@ -23,6 +23,7 @@
  */
 package excel.sheet.parser.expressions;
 
+import excel.calc.Calculator;
 import excel.sheet.CellAccessor;
 import excel.sheet.Location;
 import excel.sheet.parser.Expression;
@@ -59,7 +60,7 @@ abstract public class FunctionExpression implements Expression {
     }
 
     @Override
-    public int evaluateAsInt(CellAccessor cells, HashSet<Location> callStack) throws ParserException
+    public int evaluateAsInt(CellAccessor cells, HashSet<Location> callStack, Calculator calculator) throws ParserException
     {
         throw new ParserException("Function can't be evaluated as number");
     }

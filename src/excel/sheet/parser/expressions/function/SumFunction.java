@@ -23,12 +23,20 @@
  */
 package excel.sheet.parser.expressions.function;
 
+import excel.calc.Calculator;
+import excel.sheet.Cell;
 import excel.sheet.CellAccessor;
 import excel.sheet.Location;
+import excel.sheet.parser.Expression;
+import excel.sheet.parser.Parser;
 import excel.sheet.parser.ParserException;
 import excel.sheet.parser.expressions.AddressExpression;
 import excel.sheet.parser.expressions.FunctionExpression;
+import excel.sheet.parser.expressions.RangeExpression;
+import excel.sheet.token.Tokenizer;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.ListIterator;
 
 /**
  * Funkcja sumy
@@ -43,11 +51,94 @@ public class SumFunction extends FunctionExpression {
     }
 
     @Override
-    public String evaluate(CellAccessor cells, HashSet<Location> callStack) throws ParserException
+    public String evaluate(CellAccessor cells, HashSet<Location> callStack, Calculator calculator) throws ParserException
     {
-        StringBuilder str = new StringBuilder();
+        StringBuilder str = new StringBuilder(1024);
+        str.append('(');
         
-        // TODO
+        int colStart, colEnd, rowStart, rowEnd;
+        
+        // kolumny
+        if (address.getLeft() instanceof RangeExpression) {
+            RangeExpression range = (RangeExpression) address.getLeft();
+            
+            colStart = range.getLeft().evaluateAsInt(cells, callStack, calculator);
+            colEnd = range.getRight().evaluateAsInt(cells, callStack, calculator);
+        } else {
+            colStart = address.getLeft().evaluateAsInt(cells, callStack, calculator);
+            colEnd = colStart;
+        }
+        
+        // wiersze
+        if (address.getRight() instanceof RangeExpression) {
+            RangeExpression range = (RangeExpression) address.getRight();
+            
+            rowStart = range.getLeft().evaluateAsInt(cells, callStack, calculator);
+            rowEnd = range.getRight().evaluateAsInt(cells, callStack, calculator);
+        } else {
+            rowStart = address.getRight().evaluateAsInt(cells, callStack, calculator);
+            rowEnd = rowStart;
+        }
+        
+        if (rowStart > rowEnd || colStart > colEnd || colStart <= 0 || rowStart <= 0)
+            throw new ParserException("Address range in invalid format");
+        
+        // teraz każdą komórke po kolei evalujemy ...
+        Tokenizer tokenizer = new Tokenizer();
+        Parser parser = new Parser();
+        
+        // po kolumnach
+        for (int col = colStart; col <= colEnd; col++) {
+            // po wierszach
+            for (int row = rowStart; row <= rowEnd; row++) {
+                if (col != colStart && row != rowStart)
+                    str.append('+');
+                
+                Location loc = new Location(col, row);
+                
+                Cell cell = cells.get(col, row);
+                
+                if (cell == null || cell.isOrdinaryText()) {
+                    str.append('0');
+                } else if (cell.isCalculated()) {
+                    // miło
+                    str.append(cell.getValue());
+                } else {
+                    // koszmar
+                    Cell newCell = new Cell(cell);
+
+                    HashSet<Location> newStack = (HashSet) callStack.clone();
+                    newStack.add(loc);
+
+                    try {
+                        ArrayList<Expression> expressions = parser.parse(tokenizer.tokenize(cell.getFormula()));
+
+                        StringBuilder str2 = new StringBuilder();
+
+                        ListIterator<Expression> iterator = expressions.listIterator();
+
+                        while (iterator.hasNext()) {
+                            str2.append(iterator.next().evaluate(cells, newStack, calculator));
+                        }
+
+                        String result = calculator.calculateExpression(str2.toString());
+
+                        newCell.setValue(result);
+                    } catch (Exception e) {
+                        newCell.setValue("");
+                        newCell.setError(e.getMessage());
+                    }
+
+                    newCell.setCalculated(true);
+
+                    cells.set(col, row, newCell);
+                    
+                    str.append(newCell.getValue());
+                }
+            }
+        }
+        
+        str.append(')');
         
         return str.toString();
     }

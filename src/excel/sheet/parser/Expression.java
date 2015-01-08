@@ -23,6 +23,7 @@
  */
 package excel.sheet.parser;
 
+import excel.calc.Calculator;
 import excel.sheet.CellAccessor;
 import excel.sheet.Location;
 import java.util.HashSet;
@@ -48,7 +49,7 @@ public interface Expression {
      * @param  callStack            Stack wywołań (do walki z referencjami cyklicznymi)
      * @return Rozwinięty int
      */
-    public int evaluateAsInt(CellAccessor cells, HashSet<Location> callStack) throws ParserException;
+    public int evaluateAsInt(CellAccessor cells, HashSet<Location> callStack, Calculator calculator) throws ParserException;
     
     /**
      * Rozwinięcie wyrażenia do stringa kalkulatora
@@ -57,7 +58,7 @@ public interface Expression {
      * @param  callStack            Stack wywołań (do walki z referencjami cyklicznymi)
      * @return Rozwinięty string
      */
-    public String evaluate(CellAccessor cells, HashSet<Location> callStack) throws ParserException;
+    public String evaluate(CellAccessor cells, HashSet<Location> callStack, Calculator calculator) throws ParserException;
     
     /**
      * Relatywne przesunięcie

@@ -23,12 +23,17 @@
  */
 package excel.sheet.parser.expressions;
 
+import excel.calc.Calculator;
 import excel.sheet.Cell;
 import excel.sheet.CellAccessor;
 import excel.sheet.Location;
 import excel.sheet.parser.Expression;
+import excel.sheet.parser.Parser;
 import excel.sheet.parser.ParserException;
+import excel.sheet.token.Tokenizer;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.ListIterator;
 
 /**
  * Wyrażenie adresu
@@ -49,23 +54,33 @@ public class AddressExpression implements Expression {
         this.leftClosed = leftClosed;
         this.rightClosed = rightClosed;
     }
+
+    public Expression getLeft()
+    {
+        return left;
+    }
+
+    public Expression getRight()
+    {
+        return right;
+    }
     
     @Override
-    public int evaluateAsInt(CellAccessor cells, HashSet<Location> callStack) throws ParserException
+    public int evaluateAsInt(CellAccessor cells, HashSet<Location> callStack, Calculator calculator) throws ParserException
     {
-        String out = evaluate(cells, callStack);
+        String out = evaluate(cells, callStack, null);
         
         return Integer.parseInt(out, 10);
     }
 
     @Override
-    public String evaluate(CellAccessor cells, HashSet<Location> callStack) throws ParserException
+    public String evaluate(CellAccessor cells, HashSet<Location> callStack, Calculator calculator) throws ParserException
     {
         if (left instanceof RangeExpression || right instanceof RangeExpression)
             throw new ParserException("Range addresses cannot be evaluated");
         
-        int col = left.evaluateAsInt(cells, callStack);
-        int row = right.evaluateAsInt(cells, callStack);
+        int col = left.evaluateAsInt(cells, callStack, null);
+        int row = right.evaluateAsInt(cells, callStack, null);
         Location loc = new Location(col, row);
         
         if (col < 1 || row < 1)
@@ -90,12 +105,27 @@ public class AddressExpression implements Expression {
             HashSet<Location> newStack = (HashSet) callStack.clone();
             newStack.add(loc);
             
-            // try {
-            // TODO: some parsing and shi'
-            // } catch (Exception e) {
-            //     newCell.setValue("");
-            //     newCell.setError(e.getMessage());
-            // }
+            try {
+                Tokenizer tokenizer = new Tokenizer();
+                Parser parser = new Parser();
+                
+                ArrayList<Expression> expressions = parser.parse(tokenizer.tokenize(cell.getFormula()));
+                
+                StringBuilder str = new StringBuilder();
+                
+                ListIterator<Expression> iterator = expressions.listIterator();
+                
+                while (iterator.hasNext()) {
+                    str.append(iterator.next().evaluate(cells, newStack, calculator));
+                }
+                
+                String result = calculator.calculateExpression(str.toString());
+                
+                newCell.setValue(result);
+            } catch (Exception e) {
+                newCell.setValue("");
+                newCell.setError(e.getMessage());
+            }
             
             newCell.setCalculated(true);
             

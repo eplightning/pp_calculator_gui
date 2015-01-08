@@ -23,6 +23,7 @@
  */
 package excel.sheet.parser.expressions;
 
+import excel.calc.Calculator;
 import excel.sheet.CellAccessor;
 import excel.sheet.Location;
 import excel.sheet.parser.*;
@@ -43,13 +44,13 @@ public class CalcExpression implements Expression {
     }
 
     @Override
-    public String evaluate(CellAccessor cells, HashSet<Location> callStack)  throws ParserException
+    public String evaluate(CellAccessor cells, HashSet<Location> callStack, Calculator calculator)  throws ParserException
     {
         return expression;
     }
 
     @Override
-    public int evaluateAsInt(CellAccessor cells, HashSet<Location> callStack) throws ParserException
+    public int evaluateAsInt(CellAccessor cells, HashSet<Location> callStack, Calculator calculator) throws ParserException
     {
         throw new ParserException("Calculator expression cannot be evaluated as int");
     }
