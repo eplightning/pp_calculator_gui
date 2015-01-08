@@ -28,7 +28,7 @@ package excel.sheet;
  * 
  * @author eplightning <eplightning at outlook dot com>
  */
-public class Cell {
+public class Cell implements Cloneable {
     
     protected boolean calculated;
     protected String error;
@@ -41,6 +41,14 @@ public class Cell {
         calculated = false;
         formula = null;
         value = null;
+    }
+    
+    public Cell(Cell other)
+    {
+        this.calculated = false;
+        this.value = null;
+        this.formula = other.formula;
+        this.error = null;
     }
     
     public String getFormula()
@@ -75,6 +83,9 @@ public class Cell {
 
     public String getValue()
     {
+        if (value == null || value.isEmpty())
+            return "0";
+        
         return value;
     }
 
@@ -83,16 +94,21 @@ public class Cell {
         this.value = value;
     }
     
+    public boolean isOrdinaryText()
+    {
+        return formula.length() <= 0 || formula.charAt(0) != '=';
+    }
+    
     @Override
     public String toString()
     {
-        if (formula.length() <= 0 || formula.charAt(0) != '=' || !isCalculated()) {
-            return formula;
+        if (isOrdinaryText() || !isCalculated()) {
+            return getFormula();
         }
         
         if (error != null)
-            return error;
+            return getError();
 
-        return value;
+        return getValue();
     }
 }
