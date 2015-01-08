@@ -91,15 +91,20 @@ public class SumFunction extends FunctionExpression {
         for (int col = colStart; col <= colEnd; col++) {
             // po wierszach
             for (int row = rowStart; row <= rowEnd; row++) {
-                if (col != colStart && row != rowStart)
+                if (col != colStart || row != rowStart)
                     str.append('+');
                 
                 Location loc = new Location(col, row);
                 
+                if (callStack.contains(loc))
+                    throw new ParserException("Cyclic dependency detected in sum function");
+                
                 Cell cell = cells.get(col, row);
                 
-                if (cell == null || cell.isOrdinaryText()) {
+                if (cell == null || cell.getFormula().isEmpty()) {
                     str.append('0');
+                } else if (cell.isOrdinaryText()) {
+                    str.append(cell.getFormula()); // this is so not going to work
                 } else if (cell.isCalculated()) {
                     // miło
                     str.append(cell.getValue());

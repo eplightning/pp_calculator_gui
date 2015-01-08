@@ -91,6 +91,7 @@ public class Parser {
         // poprzedni elem. jako że readAddressParam odczytuje też koniec funkcji, a nam potrzebny ten token!
         // też mamy gwarancje że to FunctionEndToken bo by readAddressParam wywalił wyjątek
         FunctionEndToken tok = (FunctionEndToken) iterator.previous();
+        iterator.next(); // fajnie by było gdyby java po prostu miała ludzkei current()
         
         return new AddressExpression(col, row, start.isClosed(), tok.isClosed());
     }

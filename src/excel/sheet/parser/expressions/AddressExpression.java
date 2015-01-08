@@ -140,7 +140,7 @@ public class AddressExpression implements Expression {
     public void relativeMove(int col, int row)
     {
         if (left instanceof NumExpression) {
-            if (col != 0) {
+            if (col != 0 && !leftClosed) {
                 NumExpression expr = (NumExpression) left;
                 expr.setValue(expr.getValue() + col);
             }
@@ -149,8 +149,8 @@ public class AddressExpression implements Expression {
         }
         
         if (right instanceof NumExpression) {
-            if (row != 0) {
-                NumExpression expr = (NumExpression) left;
+            if (row != 0 && !rightClosed) {
+                NumExpression expr = (NumExpression) right;
                 expr.setValue(expr.getValue() + row);
             }
         } else {
