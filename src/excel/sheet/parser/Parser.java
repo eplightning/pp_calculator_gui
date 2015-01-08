@@ -26,6 +26,8 @@ package excel.sheet.parser;
 import excel.sheet.parser.expressions.AddressExpression;
 import excel.sheet.parser.expressions.CalcExpression;
 import excel.sheet.parser.expressions.FunctionExpression;
+import excel.sheet.parser.expressions.NumExpression;
+import excel.sheet.parser.expressions.RangeExpression;
 import excel.sheet.parser.expressions.function.SumFunction;
 import excel.sheet.token.Token;
 import excel.sheet.token.TokenType;
@@ -95,7 +97,57 @@ public class Parser {
     
     protected Expression readAddressParam(boolean row) throws ParserException
     {
-        return null;
+        // first part of the param
+        if (!iterator.hasNext())
+            throw new ParserException("Unexpected EOL while reading address param #1");
+        Token tok = iterator.next();
+        
+        Expression left = readAddressParamPart(tok);
+        
+        // optionally second part of the param, or end
+        if (!iterator.hasNext())
+            throw new ParserException("Unexpected EOL while reading address param #1");
+        tok = iterator.next();
+        
+        if ((tok.type() == TokenType.FUNCTION_END && row) || (tok.type() == TokenType.COMMA && !row)) {
+            return left;
+        } else if (tok.type() != TokenType.RANGE) {
+            throw new ParserException("Unexpected token while reading address param #2, expected range token");
+        }
+        
+        // second part of the param
+        if (!iterator.hasNext())
+            throw new ParserException("Unexpected EOL while reading address param #2");
+        tok = iterator.next();
+        
+        Expression right = readAddressParamPart(tok);
+        
+        // let's check if it's the end again
+        if (!iterator.hasNext())
+            throw new ParserException("Unexpected EOL while reading address param #2");
+        tok = iterator.next();
+        
+        if ((tok.type() == TokenType.FUNCTION_END && row) || (tok.type() == TokenType.COMMA && !row)) {
+            return new RangeExpression(left, right);
+        }
+        
+        throw new ParserException("Unexpected token while reading address param #2, expected comma or func end");
+    }
+    
+    protected Expression readAddressParamPart(Token tok) throws ParserException
+    {
+        if (tok.type() == TokenType.FUNCTION_START) {
+            FunctionToken tok2 = (FunctionToken) tok;
+
+            if (!tok2.getName().equals("$"))
+                throw new ParserException("Unexpected function while reading address param, expected address");
+
+            return readAddress(tok2);
+        } else if (tok.type() == TokenType.INTEGER) {
+            return new NumExpression((IntegerToken) tok);
+        }
+        
+        throw new ParserException("Unexpected token while reading address param, expected address or integer");
     }
     
     protected FunctionExpression readFunction(FunctionToken name) throws ParserException
