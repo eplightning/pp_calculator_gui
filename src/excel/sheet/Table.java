@@ -23,10 +23,24 @@
  */
 package excel.sheet;
 
+import excel.sheet.parser.Expression;
+import excel.sheet.parser.Parser;
+import excel.sheet.token.Tokenizer;
 import java.awt.Component;
+import java.awt.Point;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.util.ArrayList;
+import javax.activation.ActivationDataFlavor;
+import javax.activation.DataHandler;
 import javax.swing.DefaultCellEditor;
+import javax.swing.DropMode;
+import javax.swing.JComponent;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.TransferHandler;
 
 /**
  * Rozszerzenie JTable dla arkusza
@@ -42,11 +56,13 @@ public class Table extends JTable {
         setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         setColumnSelectionAllowed(false);
         setFillsViewportHeight(true);
-        setRowSelectionAllowed(false);
-        setColumnSelectionAllowed(false);
+        setRowSelectionAllowed(true);
         setRowHeight(25);
         setAutoCreateRowSorter(false);
         getTableHeader().setReorderingAllowed(false);
+        setTransferHandler(new DragDrop());
+        setDropMode(DropMode.ON);
+        setDragEnabled(true);
         
         editorField = new JTextField();
         setDefaultEditor(Cell.class, new CellEditor(editorField));
@@ -69,5 +85,103 @@ public class Table extends JTable {
             
             return super.getTableCellEditorComponent(jtable, o, bln, i, i1); //To change body of generated methods, choose Tools | Templates.
         }
+        
+    }
+    
+    protected class DragDrop extends TransferHandler {
+        
+        protected final DataFlavor locFlavor;
+        
+        public DragDrop()
+        {
+            locFlavor = new ActivationDataFlavor(Location.class, DataFlavor.javaJVMLocalObjectMimeType, "Location");
+        }
+        
+        @Override
+        protected Transferable createTransferable(JComponent jc)
+        {
+            JTable tab = (JTable) jc;
+            
+            int col = tab.getSelectedColumn();
+            int row = tab.getSelectedRow();
+            
+            if (col == -1 || row == -1) {
+                return new StringSelection("");
+            }
+            
+            Object out = tab.getModel().getValueAt(row, col);
+            
+            if (out == null) {
+                return new StringSelection("");
+            }
+            
+            return new DataHandler(new Location(col + 1, row + 1), locFlavor.getMimeType());
+        }
+
+        @Override
+        public int getSourceActions(JComponent jc)
+        {
+            return COPY;
+        }
+
+        @Override
+        public boolean canImport(TransferSupport ts)
+        {
+            return !(!ts.isDataFlavorSupported(DataFlavor.stringFlavor) && !ts.isDataFlavorSupported(locFlavor));
+        }
+
+        @Override
+        public boolean importData(TransferSupport ts)
+        {
+            int col;
+            int row;
+            
+            if (ts.isDrop()) {
+                JTable.DropLocation drop2 = (JTable.DropLocation) ts.getDropLocation();
+                col = drop2.getColumn();
+                row = drop2.getRow();
+            } else {
+                col = getSelectedColumn();
+                row = getSelectedRow();
+            }
+            
+            try {
+                if (ts.isDataFlavorSupported(locFlavor)) {
+                    Location loc = (Location) ts.getTransferable().getTransferData(locFlavor);
+                    
+                    Object obj = getModel().getValueAt(loc.getRow() - 1, loc.getColumn() - 1);
+                    Cell cell = (Cell) obj;
+                    
+                    if (cell == null || cell.isOrdinaryText()) {
+                        getModel().setValueAt(obj, row, col);
+                    } else {
+                        Tokenizer tokenizer = new Tokenizer();
+                        Parser parser = new Parser();
+                        
+                        ArrayList<Expression> expressions = parser.parse(tokenizer.tokenize(cell.getFormula()));
+                        
+                        StringBuilder str = new StringBuilder(cell.getFormula().length());
+                        
+                        str.append('=');
+                        
+                        for (Expression expr : expressions) {
+                            expr.relativeMove(col + 1 - loc.getColumn(), row + 1 - loc.getRow());
+                            str.append(expr.evaluateAsFormula());
+                        }
+                        
+                        getModel().setValueAt(str.toString(), row, col);
+                    }
+                } else if (ts.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+                    getModel().setValueAt((String) ts.getTransferable().getTransferData(DataFlavor.stringFlavor), row, col);
+                } else {
+                    return false;
+                }
+            } catch (Exception e) {
+                return false;
+            }
+            
+            return true;
+        }
+        
     }
 }

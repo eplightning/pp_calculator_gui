@@ -94,7 +94,7 @@ public class AddressExpression implements Expression {
         String out;
         
         if (cell == null) {
-            out = "";
+            out = "0";
         } else if (cell.isOrdinaryText()) {
             out = cell.getFormula();
         } else if (cell.isCalculated()) {
@@ -144,6 +144,24 @@ public class AddressExpression implements Expression {
                 NumExpression expr = (NumExpression) left;
                 expr.setValue(expr.getValue() + col);
             }
+        } else if (left instanceof RangeExpression) {
+            if (col != 0) {
+                RangeExpression expr = (RangeExpression) left;
+                
+                if (expr.getLeft() instanceof NumExpression && !leftClosed) {
+                    NumExpression expr2 = (NumExpression) expr.getLeft();
+                    expr2.setValue(expr2.getValue() + col);
+                } else {
+                    expr.getLeft().relativeMove(col, row);
+                }
+                
+                if (expr.getRight() instanceof NumExpression && !leftClosed) {
+                    NumExpression expr2 = (NumExpression) expr.getRight();
+                    expr2.setValue(expr2.getValue() + col);
+                } else {
+                    expr.getRight().relativeMove(col, row);
+                }
+            }
         } else {
             left.relativeMove(col, row);
         }
@@ -152,6 +170,24 @@ public class AddressExpression implements Expression {
             if (row != 0 && !rightClosed) {
                 NumExpression expr = (NumExpression) right;
                 expr.setValue(expr.getValue() + row);
+            }
+        } else if (right instanceof RangeExpression) {
+            if (row != 0) {
+                RangeExpression expr = (RangeExpression) right;
+                
+                if (expr.getLeft() instanceof NumExpression && !rightClosed) {
+                    NumExpression expr2 = (NumExpression) expr.getLeft();
+                    expr2.setValue(expr2.getValue() + row);
+                } else {
+                    expr.getLeft().relativeMove(col, row);
+                }
+                
+                if (expr.getRight() instanceof NumExpression && !rightClosed) {
+                    NumExpression expr2 = (NumExpression) expr.getRight();
+                    expr2.setValue(expr2.getValue() + row);
+                } else {
+                    expr.getRight().relativeMove(col, row);
+                }
             }
         } else {
             right.relativeMove(col, row);

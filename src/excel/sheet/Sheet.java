@@ -42,6 +42,7 @@ import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelListener;
 
 /**
  * Widżet skoroszytu
@@ -59,6 +60,8 @@ public class Sheet extends JPanel {
     
     // stany
     protected boolean modified;
+    protected int lastFocusCol;
+    protected int lastFocusRow;
     
     // inne obiekty
     protected Model model;
@@ -74,6 +77,8 @@ public class Sheet extends JPanel {
         this.logger = logger;
         this.statusBar = statusBar;
         this.modified = false;
+        this.lastFocusCol = -1;
+        this.lastFocusRow = -1;
         
         setupUserInterface();
         setupTable();
@@ -85,6 +90,8 @@ public class Sheet extends JPanel {
         this.logger = logger;
         this.statusBar = statusBar;
         this.modified = false;
+        this.lastFocusCol = -1;
+        this.lastFocusRow = -1;
         
         setupUserInterface();
         setupTable();
@@ -160,7 +167,17 @@ public class Sheet extends JPanel {
             int row = table.getSelectedRow();
             
             if (col == -1 || row == -1) {
-                formulaField.setText("");
+                if (lastFocusCol == -1 || lastFocusRow == -1) {
+                    formulaField.setText("");
+                } else {
+                    col = lastFocusCol;
+                    row = lastFocusRow;
+                
+                    lastFocusCol = -1;
+                    lastFocusRow = -1;
+                    
+                    table.changeSelection(row, col, false, false);
+                }
             } else {
                 Object o = model.getValueAt(row, col);
 
@@ -220,6 +237,8 @@ public class Sheet extends JPanel {
         {
             int col = table.getSelectedColumn();
             int row = table.getSelectedRow();
+            lastFocusCol = col;
+            lastFocusRow = row;
             
             if (col == -1 || row == -1) {
                 formulaField.setText("");

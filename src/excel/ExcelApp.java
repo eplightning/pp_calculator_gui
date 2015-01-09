@@ -89,17 +89,6 @@ public class ExcelApp extends JFrame {
      */
     public static void main(final String[] args)
     {
-        // próbujemy ustawić natywny wygląd
-        try {
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-        } catch (Exception e) {
-            try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (Exception e2) {
-
-            }
-        }
-
         // każemy odpalić główne okienko jak pętla eventów się odpali
         SwingUtilities.invokeLater(new Runnable() {
             @Override
