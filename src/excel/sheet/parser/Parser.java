@@ -28,7 +28,9 @@ import excel.sheet.parser.expressions.CalcExpression;
 import excel.sheet.parser.expressions.FunctionExpression;
 import excel.sheet.parser.expressions.NumExpression;
 import excel.sheet.parser.expressions.RangeExpression;
+import excel.sheet.parser.expressions.function.AvgFunction;
 import excel.sheet.parser.expressions.function.SumFunction;
+import excel.sheet.parser.expressions.function.VarFunction;
 import excel.sheet.token.Token;
 import excel.sheet.token.TokenType;
 import excel.sheet.token.tokens.*;
@@ -79,6 +81,12 @@ public class Parser {
     {
         if (name.equals("sum") || name.equals("suma"))
             return new SumFunction(addr);
+        
+        if (name.equals("avg") || name.equals("average"))
+            return new AvgFunction(addr);
+        
+        if (name.equals("variance") || name.equals("var"))
+            return new VarFunction(addr);
         
         throw new ParserException(String.format("Unknown function %s", name));
     }

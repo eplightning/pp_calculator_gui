@@ -40,6 +40,11 @@ public class CellAccessor {
         this.cells = cells;
         this.producedCells = new HashMap<>();
     }
+
+    public HashMap<Location, Cell> getProducedCells()
+    {
+        return producedCells;
+    }
     
     public Cell get(int col, int row)
     {

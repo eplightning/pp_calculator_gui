@@ -26,6 +26,7 @@ package excel.sheet;
 import excel.calc.Calculator;
 import excel.Logger;
 import excel.exportimport.*;
+import excel.main.StatusBar;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Insets;
@@ -33,9 +34,14 @@ import java.awt.Point;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JViewport;
+import javax.swing.event.CellEditorListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 /**
  * Widżet skoroszytu
@@ -60,21 +66,26 @@ public class Sheet extends JPanel {
     // obiekty z maina
     protected Calculator calc;
     protected Logger logger;
+    protected StatusBar statusBar;
     
-    public Sheet(Calculator calc, Logger logger)
+    public Sheet(Calculator calc, Logger logger, StatusBar statusBar)
     {
         this.calc = calc;
         this.logger = logger;
+        this.statusBar = statusBar;
         this.modified = false;
+        
         setupUserInterface();
         setupTable();
     }
     
-    public Sheet(Calculator calc, Logger logger, ExportImportData data)
+    public Sheet(Calculator calc, Logger logger, StatusBar statusBar, ExportImportData data)
     {
         this.calc = calc;
         this.logger = logger;
+        this.statusBar = statusBar;
         this.modified = false;
+        
         setupUserInterface();
         setupTable();
         // TODO: Import
@@ -82,7 +93,7 @@ public class Sheet extends JPanel {
     
     private void setupTable()
     {
-        model = new Model();
+        model = new Model(logger, statusBar, calc);
         
         table.setModel(model);
     }
@@ -112,15 +123,14 @@ public class Sheet extends JPanel {
         // tytuły wierszy wrzucamy jako row header i synchronizujemy ze scrollem
         tableScroll.setRowHeaderView(colScroll);
         tableScroll.setCorner(JScrollPane.UPPER_LEFT_CORNER, colTable.getTableHeader());
-        tableScroll.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
-            @Override
-            public void adjustmentValueChanged(AdjustmentEvent ae)
-            {
-                colScroll.setViewPosition(new Point(0, ae.getValue()));
-            }
-        });
-        
+
         add(tableScroll, BorderLayout.CENTER);
+        
+        table.getSelectionModel().addListSelectionListener(new SelectionListener());
+        table.getColumnModel().getSelectionModel().addListSelectionListener(new SelectionListener());
+        table.getDefaultEditor(Cell.class).addCellEditorListener(new EditorListener());
+        tableScroll.getVerticalScrollBar().addAdjustmentListener(new VerticalScrollListener());
+        tableScroll.getHorizontalScrollBar().addAdjustmentListener(new HorizontalScrollListener());
     }
 
     public ExportImportData export()
@@ -133,14 +143,104 @@ public class Sheet extends JPanel {
     {
         return modified;
     }
-    
-    public void setCalc(Calculator calc)
-    {
-        this.calc = calc;
-    }
 
-    public void setLogger(Logger logger)
+    public void setModified(boolean modified)
     {
-        this.logger = logger;
+        this.modified = modified;
+    }
+    
+    protected class SelectionListener implements ListSelectionListener {
+        @Override
+        public void valueChanged(ListSelectionEvent lse)
+        {
+            if (lse.getValueIsAdjusting())
+                return;
+            
+            int col = table.getSelectedColumn();
+            int row = table.getSelectedRow();
+            
+            if (col == -1 || row == -1) {
+                formulaField.setText("");
+            } else {
+                Object o = model.getValueAt(row, col);
+
+                if (o == null) {
+                    formulaField.setText("");
+                } else {
+                    Cell cell = (Cell) o;
+                    formulaField.setText(cell.getFormula());
+                }
+            }
+        }
+    }
+    
+    protected class VerticalScrollListener implements AdjustmentListener {
+        @Override
+        public void adjustmentValueChanged(AdjustmentEvent ae)
+        {
+            // overscroll
+            if (!ae.getValueIsAdjusting()) {
+                JScrollBar bar = (JScrollBar) ae.getAdjustable();
+
+                int cur = bar.getValue() + bar.getModel().getExtent();
+                int max = bar.getMaximum();
+
+                if (cur == max) {
+                    model.setRows(model.getRowCount() + 10);
+                    colTable.setRows(model.getRowCount());
+                }
+            }
+            
+            // nagłówki wierszy mają też być scrollowane tym
+            colScroll.setViewPosition(new Point(0, ae.getValue()));
+        }
+    }
+    
+    protected class HorizontalScrollListener implements AdjustmentListener {
+        @Override
+        public void adjustmentValueChanged(AdjustmentEvent ae)
+        {
+            // overscroll
+            if (!ae.getValueIsAdjusting()) {
+                JScrollBar bar = (JScrollBar) ae.getAdjustable();
+
+                int cur = bar.getValue() + bar.getModel().getExtent();
+                int max = bar.getMaximum();
+
+                if (cur == max) {
+                    model.setColumns(model.getColumnCount() + 10);
+                }
+            }
+        }
+    }
+    
+    protected class EditorListener implements CellEditorListener {
+        @Override
+        public void editingStopped(ChangeEvent ce)
+        {
+            int col = table.getSelectedColumn();
+            int row = table.getSelectedRow();
+            
+            if (col == -1 || row == -1) {
+                formulaField.setText("");
+            } else {
+                Object o = model.getValueAt(row, col);
+
+                if (o == null) {
+                    formulaField.setText("");
+                } else {
+                    Cell cell = (Cell) o;
+                    formulaField.setText(cell.getFormula());
+                }
+            }
+            
+            modified = true;
+        }
+
+        @Override
+        public void editingCanceled(ChangeEvent ce)
+        {
+            
+        }
     }
 }

@@ -23,7 +23,10 @@
  */
 package excel.sheet;
 
+import java.awt.Component;
+import javax.swing.DefaultCellEditor;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 
 /**
  * Rozszerzenie JTable dla arkusza
@@ -31,6 +34,8 @@ import javax.swing.JTable;
  * @author eplightning <eplightning at outlook dot com>
  */
 public class Table extends JTable {
+    
+    protected JTextField editorField;
     
     public Table()
     {
@@ -40,5 +45,29 @@ public class Table extends JTable {
         setRowSelectionAllowed(false);
         setColumnSelectionAllowed(false);
         setRowHeight(25);
+        setAutoCreateRowSorter(false);
+        getTableHeader().setReorderingAllowed(false);
+        
+        editorField = new JTextField();
+        setDefaultEditor(Cell.class, new CellEditor(editorField));
+    }
+    
+    protected class CellEditor extends DefaultCellEditor {
+
+        public CellEditor(JTextField jtf)
+        {
+            super(jtf);
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable jtable, Object o, boolean bln, int i, int i1)
+        {
+            if (o instanceof Cell) {
+                Cell c = (Cell) o;
+                return super.getTableCellEditorComponent(jtable, c.getFormula(), bln, i, i1);
+            }
+            
+            return super.getTableCellEditorComponent(jtable, o, bln, i, i1); //To change body of generated methods, choose Tools | Templates.
+        }
     }
 }

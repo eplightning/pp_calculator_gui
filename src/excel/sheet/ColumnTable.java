@@ -45,7 +45,7 @@ public class ColumnTable extends JTable {
         setRowSelectionAllowed(false);
         setColumnSelectionAllowed(false);
         setFillsViewportHeight(true);
-        setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         setModel(new Model());
     }
