@@ -140,7 +140,7 @@ public class ExcelApp extends JFrame {
         }
         
         // pusty arkusz
-        sheet = new Sheet(calc, logWnd);
+        sheet = new Sheet(calc, logWnd, statusBar);
         getContentPane().add(sheet, BorderLayout.CENTER);
     }
 
@@ -222,7 +222,7 @@ public class ExcelApp extends JFrame {
             }
             
             openedFile = null;
-            replaceSheet(new Sheet(calc, logWnd));
+            replaceSheet(new Sheet(calc, logWnd, statusBar));
         }
     }
 
@@ -263,7 +263,7 @@ public class ExcelApp extends JFrame {
                 
                 statusBar.setState("Gotowe");
                 
-                Sheet newSheet = new Sheet(calc, logWnd, data);
+                Sheet newSheet = new Sheet(calc, logWnd, statusBar, data);
                 replaceSheet(newSheet);
                 openedFile = picker.getSelectedFile();
             }
