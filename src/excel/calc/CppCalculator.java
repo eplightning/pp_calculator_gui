@@ -29,7 +29,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Implementacja kalkulatora jako programu zewnętrznego
- * 
+ *
  * @author eplightning <eplightning at outlook dot com>
  */
 public class CppCalculator implements Calculator {
@@ -38,42 +38,42 @@ public class CppCalculator implements Calculator {
      * Znak nowej linii
      */
     private final String calculatorEol;
-    
+
     /**
      * Blokada na proces
      */
     private final ReentrantLock calculatorLock;
-    
+
     /**
      * Ścieżka do kalkulatora
      */
     private final String calculatorPath;
-    
+
     /**
      * Proces kalkulatora
      */
     private Process calculatorProc;
-    
+
     /**
      * Konsola logująca
      */
     private Logger logger;
-    
+
     /**
      * Czy watchdog ma przestać przywracać proces
      */
     private boolean watchdogPleaseDie;
-    
+
     /**
      * Wątek watchdoga
      */
     private Watchdog watchdogThread;
-    
+
     public CppCalculator(Logger log) throws IOException
     {
         logger = log;
         watchdogPleaseDie = false;
-        
+
         if (System.getProperty("os.name").startsWith("Windows")) {
             calculatorPath = "calc/Calc.exe -q";
             calculatorEol = "\r\n";
@@ -81,53 +81,53 @@ public class CppCalculator implements Calculator {
             calculatorPath = "calc/Calc -q";
             calculatorEol = "\n";
         }
-        
+
         calculatorLock = new ReentrantLock();
-        
+
         // usuwa proces kalkulatora po zakończeniu programu
         Runtime.getRuntime().addShutdownHook(new ProcessCleaner());
-        
+
         // zaczynamy proces i watchdoga
         startProcess();
         createProcessWatchdog();
     }
-    
+
     /**
      * Liczenie wartości
-     * 
+     *
      * @param  input Formuła
      * @return Obliczona formuła
-     * @throws ArithmeticException 
+     * @throws ArithmeticException
      */
     @Override
     public String calculateExpression(String input) throws ArithmeticException
     {
         calculatorLock.lock();
-        
+
         try {
             calculatorProc.getOutputStream().write(input.getBytes());
             calculatorProc.getOutputStream().write(calculatorEol.getBytes());
             calculatorProc.getOutputStream().flush();
-            
+
             StringBuilder out = new StringBuilder();
-            
+
             int b;
-            
+
             while ((b = calculatorProc.getInputStream().read()) != -1) {
                 if (b == '\n')
                     break;
-                
+
                 if (b == '\r')
                     continue;
-                
+
                 out.append((char) b);
             }
-            
+
             if (b != '\n') {
                 calculatorLock.unlock();
                 throw new ArithmeticException("CalcIO: Unexpected end of stream");
             }
-            
+
             if (out.length() == 0) {
                 while ((b = calculatorProc.getErrorStream().read()) != -1) {
                     if (b == '\n')
@@ -135,28 +135,28 @@ public class CppCalculator implements Calculator {
 
                     if (b == '\r')
                         continue;
-                    
+
                     out.append((char) b);
                 }
-                
+
                 calculatorLock.unlock();
-                
+
                 if (b != '\n' || out.length() == 0) {
                     throw new ArithmeticException("CalcIO: Invalid error reported");
                 }
-                
+
                 throw new ArithmeticException(out.toString());
             }
-            
+
             calculatorLock.unlock();
-            
+
             return out.toString();
         } catch (IOException e) {
             calculatorLock.unlock();
             throw new ArithmeticException("CalcIO: " + e.getMessage());
         }
     }
-    
+
     /**
      * Tworzenie wątku watchdoga
      */
@@ -165,17 +165,17 @@ public class CppCalculator implements Calculator {
         watchdogThread = new Watchdog();
         watchdogThread.start();
     }
-    
+
     /**
      * Tworzenie procesu
-     * 
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     private void startProcess() throws IOException
     {
         calculatorProc = Runtime.getRuntime().exec(calculatorPath);
     }
-    
+
     /**
      * Watchdog
      */
@@ -189,11 +189,11 @@ public class CppCalculator implements Calculator {
 
                     if (watchdogPleaseDie)
                         return;
-                    
+
                     logger.addLine("Calculator process died, waiting for lock and spawning it again ...");
-                    
+
                     calculatorLock.lock();
-                    
+
                     try {
                         startProcess();
                     } catch (IOException ex) {
@@ -208,7 +208,7 @@ public class CppCalculator implements Calculator {
             }
         }
     }
-    
+
     /**
      * Usuwa proces kalkulatora
      */
@@ -217,10 +217,10 @@ public class CppCalculator implements Calculator {
         public void run()
         {
             watchdogPleaseDie = true;
-            
-            if (calculatorProc != null && calculatorProc.isAlive())
-                calculatorProc.destroyForcibly();
+
+            if (calculatorProc != null)
+                calculatorProc.destroy();
         }
     }
-    
+
 }
