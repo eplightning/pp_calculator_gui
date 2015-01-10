@@ -75,7 +75,7 @@ public class CppCalculator implements Calculator {
         watchdogPleaseDie = false;
         
         if (System.getProperty("os.name").startsWith("Windows")) {
-            calculatorPath = "D:\\Dev\\Test\\calc_cli\\build-Calc-Desktop_Qt_5_3_MinGW_32bit-Release\\release\\Calc.exe -q";
+            calculatorPath = "calc/Calc.exe -q";
             calculatorEol = "\r\n";
         } else {
             calculatorPath = "calc/Calc -q";
