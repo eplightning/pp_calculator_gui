@@ -23,6 +23,8 @@
  */
 package excel.exportimport;
 
+import excel.sheet.Location;
+
 /**
  * Adres w strukturze import/exportu sheet'ów
  * 
@@ -37,6 +39,12 @@ public class ExportImportLocation {
     {
         this.column = col;
         this.row = row;
+    }
+    
+    public ExportImportLocation(Location loc)
+    {
+        this.column = loc.getColumn();
+        this.row = loc.getRow();
     }
     
     @Override

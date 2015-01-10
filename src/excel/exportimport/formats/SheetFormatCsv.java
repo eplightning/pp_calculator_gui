@@ -122,8 +122,8 @@ public class SheetFormatCsv implements SheetFormat {
     {
         FileWriter writer = new FileWriter(file);
         
-        for (int i = 1; i < data.getRows(); i++) {
-            for (int j = 1; i < data.getColumns(); j++) {
+        for (int i = 1; i <= data.getRows(); i++) {
+            for (int j = 1; j <= data.getColumns(); j++) {
                 if (j != 1)
                     writer.write(',');
         

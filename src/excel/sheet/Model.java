@@ -70,6 +70,11 @@ public class Model extends AbstractTableModel {
         return cells;
     }
 
+    public ReentrantLock getLock()
+    {
+        return lock;
+    }
+
     public void setRows(int rows)
     {
         if (rows > this.rows) {
@@ -150,12 +155,17 @@ public class Model extends AbstractTableModel {
             
             cells.put(new Location(i1 + 1, i + 1), cell);
             
-            (new RecalculationThread()).start();
+            startRecalculationThread();
         } finally {
             lock.unlock();
         }
     }
 
+    public void startRecalculationThread()
+    {
+        (new RecalculationThread()).start();
+    }
+    
     @Override
     public boolean isCellEditable(int i, int i1)
     {

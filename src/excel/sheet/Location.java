@@ -23,6 +23,8 @@
  */
 package excel.sheet;
 
+import excel.exportimport.ExportImportLocation;
+
 /**
  * Adres komórki
  * 
@@ -37,6 +39,12 @@ public class Location {
     {
         this.column = col;
         this.row = row;
+    }
+    
+    public Location(ExportImportLocation loc)
+    {
+        this.column = loc.getColumn();
+        this.row = loc.getRow();
     }
     
     @Override

@@ -33,6 +33,7 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
+import java.util.Map;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
@@ -42,7 +43,6 @@ import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.event.TableModelListener;
 
 /**
  * Widżet skoroszytu
@@ -95,7 +95,7 @@ public class Sheet extends JPanel {
         
         setupUserInterface();
         setupTable();
-        // TODO: Import
+        importSheet(data);
     }
     
     private void setupTable()
@@ -140,10 +140,55 @@ public class Sheet extends JPanel {
         tableScroll.getHorizontalScrollBar().addAdjustmentListener(new HorizontalScrollListener());
     }
 
+    private void importSheet(ExportImportData data)
+    {
+        model.setColumns(data.getColumns() + (50 - (data.getColumns() % 50)));
+        model.setRows(data.getRows() + (50 - (data.getRows() % 50)));
+        
+        model.getLock().lock();
+        
+        try {
+            model.getCells().clear();
+            
+            for (Map.Entry<ExportImportLocation, String> entry : data.getCells().entrySet()) {
+                Cell newCell = new Cell();
+                
+                newCell.setFormula(entry.getValue());
+                
+                model.getCells().put(new Location(entry.getKey()), newCell);
+            }
+            
+            model.startRecalculationThread();
+        } finally {
+            model.getLock().unlock();
+        }
+    }
+    
     public ExportImportData export()
     {
-        // TODO
-        return null;
+        ExportImportData out = new ExportImportData();
+        out.setColumns(0);
+        out.setRows(0);
+        
+        model.getLock().lock();
+        
+        try {
+            for (Map.Entry<Location, Cell> entry : model.getCells().entrySet()) {
+                if (out.getColumns() < entry.getKey().getColumn()) {
+                    out.setColumns(entry.getKey().getColumn());
+                }
+                
+                if (out.getRows() < entry.getKey().getRow()) {
+                    out.setRows(entry.getKey().getRow());
+                }
+                
+                out.getCells().put(new ExportImportLocation(entry.getKey()), entry.getValue().getFormula());
+            }
+        } finally {
+            model.getLock().unlock();
+        }
+        
+        return out;
     }
 
     public boolean isModified()

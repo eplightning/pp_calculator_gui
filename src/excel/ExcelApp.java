@@ -37,6 +37,7 @@ import java.io.IOException;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -207,7 +208,11 @@ public class ExcelApp extends JFrame {
         public void actionPerformed(ActionEvent ae)
         {
             if (sheet.isModified()) {
-                // TODO: Czy chcesz utracić ...
+                int option = JOptionPane.showConfirmDialog(null, "Zmiany nie zostały zapisane, czy na pewno chcesz otworzyć inny plik?", "Potwierdzenie", JOptionPane.YES_NO_OPTION);
+            
+                if (option == JOptionPane.NO_OPTION) {
+                    return;
+                }
             }
             
             openedFile = null;
@@ -223,7 +228,11 @@ public class ExcelApp extends JFrame {
         public void actionPerformed(ActionEvent ae)
         {
             if (sheet.isModified()) {
-                // TODO: Czy chcesz utracić ...
+                int option = JOptionPane.showConfirmDialog(null, "Zmiany nie zostały zapisane, czy na pewno chcesz otworzyć inny plik?", "Potwierdzenie", JOptionPane.YES_NO_OPTION);
+            
+                if (option == JOptionPane.NO_OPTION) {
+                    return;
+                }
             }
             
             // dialog wyboru pliku
@@ -273,7 +282,26 @@ public class ExcelApp extends JFrame {
                 return;
             }
             
-            // TODO: Zapis
+            ExportImportData data = sheet.export();
+
+            logWnd.addLine("Zapisywanie pliku " + openedFile.getName());
+            statusBar.setState("Zapisywanie ...");
+
+            // wczytywanie danych z pliku
+            try {
+                SheetFormatFactory factory = new SheetFormatFactory();
+                SheetFormat format = factory.makeFormat(openedFile);
+
+                format.saveFile(openedFile, data);
+            } catch (IOException e) {
+                logWnd.addLine(e.getMessage());
+                JOptionPane.showMessageDialog(null, e.getMessage(), "Błąd zapisywania pliku", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            statusBar.setState("Gotowe");
+
+            sheet.setModified(false);
         }
     }
 
@@ -284,7 +312,34 @@ public class ExcelApp extends JFrame {
         @Override
         public void actionPerformed(ActionEvent ae)
         {
-            // TODO: Zapis
+            // dialog wyboru pliku
+            JFileChooser picker = new JFileChooser();
+            picker.addChoosableFileFilter(new FileNameExtensionFilter("CSV file", "csv"));
+            int result = picker.showSaveDialog(ExcelApp.this);
+            
+            // zatwierdzone
+            if (result == JFileChooser.APPROVE_OPTION) {
+                ExportImportData data = sheet.export();
+                
+                logWnd.addLine("Zapisywanie pliku " + picker.getSelectedFile().getName());
+                statusBar.setState("Zapisywanie ...");
+                
+                // wczytywanie danych z pliku
+                try {
+                    SheetFormatFactory factory = new SheetFormatFactory();
+                    SheetFormat format = factory.makeFormat(picker.getSelectedFile());
+                    
+                    format.saveFile(picker.getSelectedFile(), data);
+                } catch (IOException e) {
+                    logWnd.addLine(e.getMessage());
+                    JOptionPane.showMessageDialog(null, e.getMessage(), "Błąd zapisywania pliku", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
+                statusBar.setState("Gotowe");
+                
+                sheet.setModified(false);
+            }
         }
     }
 
