@@ -144,6 +144,7 @@ public class Sheet extends JPanel {
     {
         model.setColumns(data.getColumns() + (50 - (data.getColumns() % 50)));
         model.setRows(data.getRows() + (50 - (data.getRows() % 50)));
+        colTable.setRows(model.getRowCount());
         
         model.getLock().lock();
         
