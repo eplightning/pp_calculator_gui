@@ -252,7 +252,7 @@ public class Tokenizer {
     
     protected boolean isNameCharacter(char chr)
     {
-        return ((chr >= 'a' && chr <= 'z') || (chr >= 'A' && chr <= 'Z') || chr == '$');
+        return ((chr >= 'a' && chr <= 'z') || (chr >= 'A' && chr <= 'Z') || chr == '$' || chr == '_');
     }
     
     protected boolean isWhitespace(char chr)

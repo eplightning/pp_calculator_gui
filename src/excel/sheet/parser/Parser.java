@@ -29,6 +29,7 @@ import excel.sheet.parser.expressions.FunctionExpression;
 import excel.sheet.parser.expressions.NumExpression;
 import excel.sheet.parser.expressions.RangeExpression;
 import excel.sheet.parser.expressions.function.AvgFunction;
+import excel.sheet.parser.expressions.function.StdDevFunction;
 import excel.sheet.parser.expressions.function.SumFunction;
 import excel.sheet.parser.expressions.function.VarFunction;
 import excel.sheet.token.Token;
@@ -87,6 +88,9 @@ public class Parser {
         
         if (name.equals("variance") || name.equals("var"))
             return new VarFunction(addr);
+        
+        if (name.equals("std_dev") || name.equals("stddev"))
+            return new StdDevFunction(addr);
         
         throw new ParserException(String.format("Unknown function %s", name));
     }
