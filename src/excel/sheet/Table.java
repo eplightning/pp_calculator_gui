@@ -90,13 +90,6 @@ public class Table extends JTable {
     
     protected class DragDrop extends TransferHandler {
         
-        protected final DataFlavor locFlavor;
-        
-        public DragDrop()
-        {
-            locFlavor = new ActivationDataFlavor(Location.class, DataFlavor.javaJVMLocalObjectMimeType, "Location");
-        }
-        
         @Override
         protected Transferable createTransferable(JComponent jc)
         {
@@ -115,7 +108,7 @@ public class Table extends JTable {
                 return new StringSelection("");
             }
             
-            return new DataHandler(new Location(col + 1, row + 1), locFlavor.getMimeType());
+            return new LocationTransfer(col + 1, row + 1, out.toString());
         }
 
         @Override
@@ -127,7 +120,7 @@ public class Table extends JTable {
         @Override
         public boolean canImport(TransferSupport ts)
         {
-            return !(!ts.isDataFlavorSupported(DataFlavor.stringFlavor) && !ts.isDataFlavorSupported(locFlavor));
+            return !(!ts.isDataFlavorSupported(DataFlavor.stringFlavor) && !ts.isDataFlavorSupported(LocationTransfer.locFlavor));
         }
 
         @Override
@@ -146,8 +139,8 @@ public class Table extends JTable {
             }
             
             try {
-                if (ts.isDataFlavorSupported(locFlavor)) {
-                    Location loc = (Location) ts.getTransferable().getTransferData(locFlavor);
+                if (ts.isDataFlavorSupported(LocationTransfer.locFlavor)) {
+                    Location loc = (Location) ts.getTransferable().getTransferData(LocationTransfer.locFlavor);
                     
                     Object obj = getModel().getValueAt(loc.getRow() - 1, loc.getColumn() - 1);
                     Cell cell = (Cell) obj;
