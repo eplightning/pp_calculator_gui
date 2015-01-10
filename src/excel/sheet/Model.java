@@ -196,9 +196,8 @@ public class Model extends AbstractTableModel {
                 // i po kolei ...
                 for (Map.Entry<Location, Cell> entry : cells.entrySet()) {
                     // na szczęście nic do roboty
-                    if (entry.getValue().isOrdinaryText()) {
+                    if (entry.getValue().isOrdinaryText() || accessor.isCalculated(entry.getKey()))
                         continue;
-                    }
                     
                     // info
                     statusBar.setState(String.format("Wątek liczy komórkę $(%d, %d) ...", entry.getKey().getColumn(), entry.getKey().getRow()));

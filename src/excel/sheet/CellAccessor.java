@@ -57,6 +57,13 @@ public class CellAccessor {
         return firstTry;
     }
     
+    public boolean isCalculated(Location loc)
+    {
+        Cell firstTry = producedCells.get(loc);
+        
+        return firstTry != null && firstTry.isCalculated();
+    }
+    
     public void set(int col, int row, Cell cell)
     {
         producedCells.put(new Location(col, row), cell);

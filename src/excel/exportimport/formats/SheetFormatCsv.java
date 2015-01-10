@@ -25,10 +25,16 @@ package excel.exportimport.formats;
 
 import excel.exportimport.ExportImportLocation;
 import excel.exportimport.ExportImportData;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 
 /**
  * Format CSV
@@ -48,7 +54,7 @@ public class SheetFormatCsv implements SheetFormat {
     public ExportImportData loadFile(File file) throws IOException
     {
         ExportImportData data = new ExportImportData();
-        FileReader reader = new FileReader(file);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
 
         // stany
         int character;
@@ -120,7 +126,7 @@ public class SheetFormatCsv implements SheetFormat {
     @Override
     public void saveFile(File file, ExportImportData data) throws IOException
     {
-        FileWriter writer = new FileWriter(file);
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));
         
         for (int i = 1; i <= data.getRows(); i++) {
             for (int j = 1; j <= data.getColumns(); j++) {
