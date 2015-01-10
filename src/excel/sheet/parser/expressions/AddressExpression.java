@@ -102,7 +102,7 @@ public class AddressExpression implements Expression {
         } else {
             Cell newCell = new Cell(cell);
             
-            HashSet<Location> newStack = (HashSet) callStack.clone();
+            HashSet<Location> newStack = new HashSet<>(callStack);
             newStack.add(loc);
             
             try {

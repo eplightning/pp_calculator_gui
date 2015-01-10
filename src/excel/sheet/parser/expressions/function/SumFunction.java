@@ -112,7 +112,7 @@ public class SumFunction extends FunctionExpression {
                     // koszmar
                     Cell newCell = new Cell(cell);
 
-                    HashSet<Location> newStack = (HashSet) callStack.clone();
+                    HashSet<Location> newStack = new HashSet<>(callStack);
                     newStack.add(loc);
 
                     try {
