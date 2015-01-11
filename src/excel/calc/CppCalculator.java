@@ -103,7 +103,7 @@ public class CppCalculator implements Calculator {
     @Override
     public String calculateExpression(String input) throws ArithmeticException
     {
-        if (input.isEmpty())
+        if (input.isEmpty() || input.equals("exit"))
             return "";
 
         calculatorLock.lock();
@@ -212,7 +212,7 @@ public class CppCalculator implements Calculator {
                 createProcessWatchdog();
             }
         }
-        
+
     }
 
     /**
