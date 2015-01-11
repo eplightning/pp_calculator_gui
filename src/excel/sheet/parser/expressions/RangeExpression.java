@@ -32,14 +32,14 @@ import java.util.HashSet;
 
 /**
  * Wyrażenie Liczba..Liczba
- * 
+ *
  * @author eplightning <eplightning at outlook dot com>
  */
 public class RangeExpression implements Expression {
 
     protected Expression left;
     protected Expression right;
-    
+
     public RangeExpression(Expression left, Expression right)
     {
         this.left = left;
@@ -55,7 +55,7 @@ public class RangeExpression implements Expression {
     {
         return right;
     }
-    
+
     @Override
     public int evaluateAsInt(CellAccessor cells, HashSet<Location> callStack, Calculator calculator) throws ParserException
     {
@@ -71,7 +71,7 @@ public class RangeExpression implements Expression {
     @Override
     public void relativeMove(int col, int row)
     {
-        // TODO: hmm
+        // AddressExpression robi całą robote za nas praktycznie, jak tu dojdzie to znaczy że mamy zagnieżdżony adres
         left.relativeMove(col, row);
         right.relativeMove(col, row);
     }
@@ -80,12 +80,12 @@ public class RangeExpression implements Expression {
     public String evaluateAsFormula()
     {
         StringBuilder str = new StringBuilder(20);
-        
+
         str.append(left.evaluateAsFormula());
         str.append("..");
         str.append(right.evaluateAsFormula());
-        
+
         return str.toString();
     }
-    
+
 }

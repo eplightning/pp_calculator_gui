@@ -23,21 +23,31 @@
  */
 package excel.sheet;
 
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.io.IOException;
-
 /**
  * Komórka
- * 
+ *
  * @author eplightning <eplightning at outlook dot com>
  */
 public class Cell implements Cloneable {
-    
+
+    /**
+     * Czy wartość jest obliczona i aktualna
+     */
     protected boolean calculated;
+
+    /**
+     * Błąd obliczeń
+     */
     protected String error;
+
+    /**
+     * Formuła
+     */
     protected String formula;
+
+    /**
+     * Obliczona wartość
+     */
     protected String value;
 
     public Cell()
@@ -47,7 +57,12 @@ public class Cell implements Cloneable {
         formula = null;
         value = null;
     }
-    
+
+    /**
+     * Konstruktor kopiujący, kopiuje wyłącznie formułe - reszta jest na domyślne
+     *
+     * @param other Obiekt którego kopie robimy
+     */
     public Cell(Cell other)
     {
         this.calculated = false;
@@ -55,7 +70,7 @@ public class Cell implements Cloneable {
         this.formula = other.formula;
         this.error = null;
     }
-    
+
     public String getFormula()
     {
         return formula;
@@ -90,7 +105,7 @@ public class Cell implements Cloneable {
     {
         if (value == null || value.isEmpty())
             return "0";
-        
+
         return value;
     }
 
@@ -98,19 +113,18 @@ public class Cell implements Cloneable {
     {
         this.value = value;
     }
-    
+
     public boolean isOrdinaryText()
     {
         return formula.length() <= 0 || formula.charAt(0) != '=';
     }
-    
+
     @Override
     public String toString()
     {
-        if (isOrdinaryText() || !isCalculated()) {
+        if (isOrdinaryText() || !isCalculated())
             return getFormula();
-        }
-        
+
         if (error != null)
             return getError();
 

@@ -30,7 +30,8 @@ import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
 /**
- *
+ * Status bar bo Swing nie ma swojego lol
+ * 
  * @author eplightning
  */
 public class StatusBar extends JPanel {

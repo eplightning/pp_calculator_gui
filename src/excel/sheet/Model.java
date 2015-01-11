@@ -40,7 +40,7 @@ import javax.swing.table.AbstractTableModel;
 
 /**
  * Model tabeli
- * 
+ *
  * @author eplightning <eplightning at outlook dot com>
  */
 public class Model extends AbstractTableModel {
@@ -49,11 +49,11 @@ public class Model extends AbstractTableModel {
     protected HashMap<Location, Cell> cells;
     protected int rows;
     protected int columns;
-    
+
     protected Logger logger;
     protected StatusBar statusBar;
     protected Calculator calc;
-    
+
     public Model(Logger logger, StatusBar statusBar, Calculator calc)
     {
         cells = new HashMap<>();
@@ -64,7 +64,7 @@ public class Model extends AbstractTableModel {
         this.logger = logger;
         this.calc = calc;
     }
-    
+
     public HashMap<Location, Cell> getCells()
     {
         return cells;
@@ -77,11 +77,12 @@ public class Model extends AbstractTableModel {
 
     public void setRows(int rows)
     {
+        // tylko obsługujemy rozszerzanie
         if (rows > this.rows) {
             int old = this.rows;
-            
+
             this.rows = rows;
-        
+
             fireTableRowsInserted(old, rows - 1);
         }
     }
@@ -91,13 +92,13 @@ public class Model extends AbstractTableModel {
         // tylko obsługujemy rozszerzanie
         if (columns > this.columns) {
             int old = this.columns;
-            
+
             this.columns = columns;
-            
+
             fireTableStructureChanged();
         }
     }
-    
+
     @Override
     public int getRowCount()
     {
@@ -109,25 +110,25 @@ public class Model extends AbstractTableModel {
     {
         return columns;
     }
-    
+
     @Override
     public String getColumnName(int i)
     {
         return Integer.toString(i + 1);
     }
-    
+
     @Override
     public Object getValueAt(int i, int i1)
     {
         lock.lock();
         Cell out;
-        
+
         try {
             out = cells.get(new Location(i1 + 1, i + 1));
         } finally {
             lock.unlock();
         }
-        
+
         return out;
     }
 
@@ -136,83 +137,83 @@ public class Model extends AbstractTableModel {
     {
         return Cell.class;
     }
-    
+
     @Override
     public void setValueAt(Object o, int i, int i1)
     {
         lock.lock();
-        
+
         try {
             Cell cell = new Cell();
-            
+
             if (o instanceof Cell) {
                 Cell o2 = (Cell) o;
-                
+
                 cell.setFormula(o2.getFormula());
             } else {
                 cell.setFormula(o.toString());
             }
-            
+
             cells.put(new Location(i1 + 1, i + 1), cell);
-            
+
             startRecalculationThread();
         } finally {
             lock.unlock();
         }
     }
 
-    public void startRecalculationThread()
-    {
-        (new RecalculationThread()).start();
-    }
-    
     @Override
     public boolean isCellEditable(int i, int i1)
     {
         return true;
     }
-    
-    protected class RecalculationThread extends Thread {
+
+    public void startRecalculationThread()
+    {
+        (new RecalculationThread()).start();
+    }
+
+    private class RecalculationThread extends Thread {
 
         @Override
         public void run()
         {
             lock.lock();
-            
+
             try {
                 statusBar.setState("Wątek przeliczenia arkusza w trakcie ...");
-                
+
                 // ustawiamy wszystkie wartości jako nieprzeliczone
                 for (Cell cell : cells.values()) {
                     if (!cell.isOrdinaryText())
                         cell.setCalculated(false);
                 }
-                
+
                 // Tokenizer i parser, CellAccessor
                 Tokenizer tokenizer = new Tokenizer();
                 Parser parser = new Parser();
                 CellAccessor accessor = new CellAccessor(cells);
-                
+
                 // i po kolei ...
                 for (Map.Entry<Location, Cell> entry : cells.entrySet()) {
                     // na szczęście nic do roboty
                     if (entry.getValue().isOrdinaryText() || accessor.isCalculated(entry.getKey()))
                         continue;
-                    
+
                     // info
                     statusBar.setState(String.format("Wątek liczy komórkę $(%d, %d) ...", entry.getKey().getColumn(), entry.getKey().getRow()));
                     logger.addLine(String.format("Wątek liczy komórkę $(%d, %d) ...", entry.getKey().getColumn(), entry.getKey().getRow()));
-                    
+
                     // Na kopii robimy
                     Cell newCell = new Cell(entry.getValue());
-                    
+
                     // ustawiamy już stack
                     HashSet<Location> stack = new HashSet<>();
                     stack.add(entry.getKey());
-                    
+
                     try {
                         ArrayList<Expression> expressions = parser.parse(tokenizer.tokenize(newCell.getFormula()));
-                        
+
                         StringBuilder str = new StringBuilder();
 
                         ListIterator<Expression> iterator = expressions.listIterator();
@@ -228,19 +229,19 @@ public class Model extends AbstractTableModel {
                         newCell.setValue("");
                         newCell.setError(e.getMessage());
                     }
-                    
+
                     newCell.setCalculated(true);
-                    
+
                     accessor.set(entry.getKey().getColumn(), entry.getKey().getRow(), newCell);
                 }
-                
+
                 // i ostatnie
                 statusBar.setState("Wątek wprowadza zmiany do tabeli ...");
-                
+
                 for (Map.Entry<Location, Cell> entry : accessor.getProducedCells().entrySet()) {
                     cells.put(entry.getKey(), entry.getValue());
                 }
-                
+
                 // przemalowanie tabeli (w wątku Swinga)
                 SwingUtilities.invokeLater(new Runnable() {
                     @Override
@@ -249,12 +250,12 @@ public class Model extends AbstractTableModel {
                         fireTableDataChanged();
                     }
                 });
-                
+
                 statusBar.setState("Gotowe");
             } finally {
                 lock.unlock();
             }
         }
-        
+
     }
 }

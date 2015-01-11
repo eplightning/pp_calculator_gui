@@ -27,14 +27,21 @@ import java.util.HashMap;
 
 /**
  * Interfejs dostępu do komórek tabeli dla wyrażeń
- * 
+ *
  * @author eplightning <eplightning at outlook dot com>
  */
 public class CellAccessor {
-    
+
+    /**
+     * Oryginalne komórki których accessor nie modyfikuje
+     */
     protected final HashMap<Location, Cell> cells;
+
+    /**
+     * Komórki wyprodukowane w procesie obliczeń
+     */
     protected final HashMap<Location, Cell> producedCells;
-    
+
     public CellAccessor(HashMap<Location, Cell> cells)
     {
         this.cells = cells;
@@ -45,25 +52,38 @@ public class CellAccessor {
     {
         return producedCells;
     }
-    
+
+    /**
+     * Najpierw próbuje z wyprodukowanych, jak nie znajdzie to próbuje w poprzednich komórkach
+     *
+     * @param col
+     * @param row
+     * @return
+     */
     public Cell get(int col, int row)
     {
         Location loc = new Location(col, row);
         Cell firstTry = producedCells.get(loc);
-        
+
         if (firstTry == null)
             return cells.get(loc);
-        
+
         return firstTry;
     }
-    
+
+    /**
+     * Sprawdza czy komórka była już wyprodukowana
+     * 
+     * @param loc
+     * @return
+     */
     public boolean isCalculated(Location loc)
     {
         Cell firstTry = producedCells.get(loc);
-        
+
         return firstTry != null && firstTry.isCalculated();
     }
-    
+
     public void set(int col, int row, Cell cell)
     {
         producedCells.put(new Location(col, row), cell);

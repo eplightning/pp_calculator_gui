@@ -57,10 +57,10 @@ public class CppCalculator implements Calculator {
     /**
      * Konsola logująca
      */
-    private Logger logger;
+    private final Logger logger;
 
     /**
-     * Czy watchdog ma przestać przywracać proces
+     * Czy watchdog ma przestać przywracać proces (tylko true jak kończymy program)
      */
     private boolean watchdogPleaseDie;
 
@@ -74,6 +74,7 @@ public class CppCalculator implements Calculator {
         logger = log;
         watchdogPleaseDie = false;
 
+        // w zależności od systemu będą inne znaki końca linii i wykonywalny plik kalkulatora
         if (System.getProperty("os.name").startsWith("Windows")) {
             calculatorPath = "calc/Calc.exe -q";
             calculatorEol = "\r\n";
@@ -131,6 +132,7 @@ public class CppCalculator implements Calculator {
                 throw new ArithmeticException("CalcIO: Unexpected end of stream");
             }
 
+            // jeśli wyjście puste (tylko nowa linia) to znaczy że błąd wystąpił
             if (out.length() == 0) {
                 while ((b = calculatorProc.getErrorStream().read()) != -1) {
                     if (b == '\n')
@@ -144,9 +146,8 @@ public class CppCalculator implements Calculator {
 
                 calculatorLock.unlock();
 
-                if (b != '\n' || out.length() == 0) {
+                if (b != '\n' || out.length() == 0)
                     throw new ArithmeticException("CalcIO: Invalid error reported");
-                }
 
                 throw new ArithmeticException(out.toString());
             }
@@ -180,9 +181,10 @@ public class CppCalculator implements Calculator {
     }
 
     /**
-     * Watchdog
+     * Wątek watchdoga
      */
     private class Watchdog extends Thread {
+
         @Override
         public void run()
         {
@@ -210,12 +212,14 @@ public class CppCalculator implements Calculator {
                 createProcessWatchdog();
             }
         }
+        
     }
 
     /**
      * Usuwa proces kalkulatora
      */
     private class ProcessCleaner extends Thread {
+
         @Override
         public void run()
         {
@@ -224,6 +228,7 @@ public class CppCalculator implements Calculator {
             if (calculatorProc != null)
                 calculatorProc.destroy();
         }
+
     }
 
 }

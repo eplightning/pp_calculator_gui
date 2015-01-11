@@ -46,31 +46,31 @@ import javax.swing.event.ListSelectionListener;
 
 /**
  * Widżet skoroszytu
- * 
+ *
  * @author eplightning <eplightning at outlook dot com>
  */
 public class Sheet extends JPanel {
-    
+
     // komponenty graficzne
     protected JTextField formulaField;
     protected Table table;
     protected JScrollPane tableScroll;
     protected ColumnTable colTable;
     protected JViewport colScroll;
-    
+
     // stany
     protected boolean modified;
     protected int lastFocusCol;
     protected int lastFocusRow;
-    
+
     // inne obiekty
     protected Model model;
-    
+
     // obiekty z maina
     protected Calculator calc;
     protected Logger logger;
     protected StatusBar statusBar;
-    
+
     public Sheet(Calculator calc, Logger logger, StatusBar statusBar)
     {
         this.calc = calc;
@@ -79,11 +79,11 @@ public class Sheet extends JPanel {
         this.modified = false;
         this.lastFocusCol = -1;
         this.lastFocusRow = -1;
-        
+
         setupUserInterface();
         setupTable();
     }
-    
+
     public Sheet(Calculator calc, Logger logger, StatusBar statusBar, ExportImportData data)
     {
         this.calc = calc;
@@ -92,47 +92,47 @@ public class Sheet extends JPanel {
         this.modified = false;
         this.lastFocusCol = -1;
         this.lastFocusRow = -1;
-        
+
         setupUserInterface();
         setupTable();
         importSheet(data);
     }
-    
+
     private void setupTable()
     {
         model = new Model(logger, statusBar, calc);
-        
+
         table.setModel(model);
     }
-    
+
     private void setupUserInterface()
     {
         setPreferredSize(new Dimension(-1, -1));
         setLayout(new BorderLayout(5, 5));
-        
+
         formulaField = new JTextField();
         formulaField.setEditable(false);
         formulaField.setPreferredSize(new Dimension(-1, 30));
         formulaField.setMargin(new Insets(6, 6, 6, 6));
         add(formulaField, BorderLayout.PAGE_START);
-        
+
         // tytuły dla wierszy
         colTable = new ColumnTable();
         colScroll = new JViewport();
         colScroll.setPreferredSize(new Dimension(40, -1));
         colScroll.setView(colTable);
-        
+
         // tabela
         table = new Table();
         tableScroll = new JScrollPane(table);
         tableScroll.setPreferredSize(new Dimension(-1, -1));
-        
+
         // tytuły wierszy wrzucamy jako row header i synchronizujemy ze scrollem
         tableScroll.setRowHeaderView(colScroll);
         tableScroll.setCorner(JScrollPane.UPPER_LEFT_CORNER, colTable.getTableHeader());
 
         add(tableScroll, BorderLayout.CENTER);
-        
+
         table.getSelectionModel().addListSelectionListener(new SelectionListener());
         table.getColumnModel().getSelectionModel().addListSelectionListener(new SelectionListener());
         table.getDefaultEditor(Cell.class).addCellEditorListener(new EditorListener());
@@ -145,50 +145,50 @@ public class Sheet extends JPanel {
         model.setColumns(data.getColumns() + (50 - (data.getColumns() % 50)));
         model.setRows(data.getRows() + (50 - (data.getRows() % 50)));
         colTable.setRows(model.getRowCount());
-        
+
         model.getLock().lock();
-        
+
         try {
             model.getCells().clear();
-            
+
             for (Map.Entry<ExportImportLocation, String> entry : data.getCells().entrySet()) {
                 Cell newCell = new Cell();
-                
+
                 newCell.setFormula(entry.getValue());
-                
+
                 model.getCells().put(new Location(entry.getKey()), newCell);
             }
-            
+
             model.startRecalculationThread();
         } finally {
             model.getLock().unlock();
         }
     }
-    
+
     public ExportImportData export()
     {
         ExportImportData out = new ExportImportData();
         out.setColumns(0);
         out.setRows(0);
-        
+
         model.getLock().lock();
-        
+
         try {
             for (Map.Entry<Location, Cell> entry : model.getCells().entrySet()) {
                 if (out.getColumns() < entry.getKey().getColumn()) {
                     out.setColumns(entry.getKey().getColumn());
                 }
-                
+
                 if (out.getRows() < entry.getKey().getRow()) {
                     out.setRows(entry.getKey().getRow());
                 }
-                
+
                 out.getCells().put(new ExportImportLocation(entry.getKey()), entry.getValue().getFormula());
             }
         } finally {
             model.getLock().unlock();
         }
-        
+
         return out;
     }
 
@@ -201,27 +201,29 @@ public class Sheet extends JPanel {
     {
         this.modified = modified;
     }
-    
-    protected class SelectionListener implements ListSelectionListener {
+
+    private class SelectionListener implements ListSelectionListener {
+
         @Override
         public void valueChanged(ListSelectionEvent lse)
         {
             if (lse.getValueIsAdjusting())
                 return;
-            
+
             int col = table.getSelectedColumn();
             int row = table.getSelectedRow();
-            
+
+            // żeby nam zaznaczenie nie uciekało z powodu przemalowania tabeli
             if (col == -1 || row == -1) {
                 if (lastFocusCol == -1 || lastFocusRow == -1) {
                     formulaField.setText("");
                 } else {
                     col = lastFocusCol;
                     row = lastFocusRow;
-                
+
                     lastFocusCol = -1;
                     lastFocusRow = -1;
-                    
+
                     table.changeSelection(row, col, false, false);
                 }
             } else {
@@ -235,9 +237,11 @@ public class Sheet extends JPanel {
                 }
             }
         }
+
     }
-    
-    protected class VerticalScrollListener implements AdjustmentListener {
+
+    private class VerticalScrollListener implements AdjustmentListener {
+
         @Override
         public void adjustmentValueChanged(AdjustmentEvent ae)
         {
@@ -253,13 +257,15 @@ public class Sheet extends JPanel {
                     colTable.setRows(model.getRowCount());
                 }
             }
-            
+
             // nagłówki wierszy mają też być scrollowane tym
             colScroll.setViewPosition(new Point(0, ae.getValue()));
         }
+
     }
-    
-    protected class HorizontalScrollListener implements AdjustmentListener {
+
+    private class HorizontalScrollListener implements AdjustmentListener {
+
         @Override
         public void adjustmentValueChanged(AdjustmentEvent ae)
         {
@@ -275,9 +281,11 @@ public class Sheet extends JPanel {
                 }
             }
         }
+
     }
-    
-    protected class EditorListener implements CellEditorListener {
+
+    private class EditorListener implements CellEditorListener {
+
         @Override
         public void editingStopped(ChangeEvent ce)
         {
@@ -285,7 +293,7 @@ public class Sheet extends JPanel {
             int row = table.getSelectedRow();
             lastFocusCol = col;
             lastFocusRow = row;
-            
+
             if (col == -1 || row == -1) {
                 formulaField.setText("");
             } else {
@@ -298,14 +306,15 @@ public class Sheet extends JPanel {
                     formulaField.setText(cell.getFormula());
                 }
             }
-            
+
             modified = true;
         }
 
         @Override
         public void editingCanceled(ChangeEvent ce)
         {
-            
+
         }
+
     }
 }

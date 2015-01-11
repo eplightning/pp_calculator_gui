@@ -27,14 +27,10 @@ import excel.sheet.parser.Expression;
 import excel.sheet.parser.Parser;
 import excel.sheet.token.Tokenizer;
 import java.awt.Component;
-import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
 import java.util.ArrayList;
-import javax.activation.ActivationDataFlavor;
-import javax.activation.DataHandler;
 import javax.swing.DefaultCellEditor;
 import javax.swing.DropMode;
 import javax.swing.JComponent;
@@ -44,13 +40,13 @@ import javax.swing.TransferHandler;
 
 /**
  * Rozszerzenie JTable dla arkusza
- * 
+ *
  * @author eplightning <eplightning at outlook dot com>
  */
 public class Table extends JTable {
-    
+
     protected JTextField editorField;
-    
+
     public Table()
     {
         setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
@@ -63,12 +59,15 @@ public class Table extends JTable {
         setTransferHandler(new DragDrop());
         setDropMode(DropMode.ON);
         setDragEnabled(true);
-        
+
         editorField = new JTextField();
         setDefaultEditor(Cell.class, new CellEditor(editorField));
     }
-    
-    protected class CellEditor extends DefaultCellEditor {
+
+    /**
+     * Edytor komórek który bierze do edycji formułe a nie wartość
+     */
+    private class CellEditor extends DefaultCellEditor {
 
         public CellEditor(JTextField jtf)
         {
@@ -82,32 +81,35 @@ public class Table extends JTable {
                 Cell c = (Cell) o;
                 return super.getTableCellEditorComponent(jtable, c.getFormula(), bln, i, i1);
             }
-            
+
             return super.getTableCellEditorComponent(jtable, o, bln, i, i1); //To change body of generated methods, choose Tools | Templates.
         }
-        
+
     }
-    
+
+    /**
+     * Horror drag & dropa w Swingu
+     */
     protected class DragDrop extends TransferHandler {
-        
+
         @Override
         protected Transferable createTransferable(JComponent jc)
         {
             JTable tab = (JTable) jc;
-            
+
             int col = tab.getSelectedColumn();
             int row = tab.getSelectedRow();
-            
+
             if (col == -1 || row == -1) {
                 return new StringSelection("");
             }
-            
+
             Object out = tab.getModel().getValueAt(row, col);
-            
+
             if (out == null) {
                 return new StringSelection("");
             }
-            
+
             return new LocationTransfer(col + 1, row + 1, out.toString());
         }
 
@@ -128,7 +130,9 @@ public class Table extends JTable {
         {
             int col;
             int row;
-            
+
+            // jeśli drag & drop to pobieramy lokalizacje z JTable
+            // w przeciwnym razie mamy paste i po prostu bierzemy obecnie wybraną komórke
             if (ts.isDrop()) {
                 JTable.DropLocation drop2 = (JTable.DropLocation) ts.getDropLocation();
                 col = drop2.getColumn();
@@ -137,31 +141,31 @@ public class Table extends JTable {
                 col = getSelectedColumn();
                 row = getSelectedRow();
             }
-            
+
             try {
                 if (ts.isDataFlavorSupported(LocationTransfer.locFlavor)) {
                     Location loc = (Location) ts.getTransferable().getTransferData(LocationTransfer.locFlavor);
-                    
+
                     Object obj = getModel().getValueAt(loc.getRow() - 1, loc.getColumn() - 1);
                     Cell cell = (Cell) obj;
-                    
+
                     if (cell == null || cell.isOrdinaryText()) {
                         getModel().setValueAt(obj, row, col);
                     } else {
                         Tokenizer tokenizer = new Tokenizer();
                         Parser parser = new Parser();
-                        
+
                         ArrayList<Expression> expressions = parser.parse(tokenizer.tokenize(cell.getFormula()));
-                        
+
                         StringBuilder str = new StringBuilder(cell.getFormula().length());
-                        
+
                         str.append('=');
-                        
+
                         for (Expression expr : expressions) {
                             expr.relativeMove(col + 1 - loc.getColumn(), row + 1 - loc.getRow());
                             str.append(expr.evaluateAsFormula());
                         }
-                        
+
                         getModel().setValueAt(str.toString(), row, col);
                     }
                 } else if (ts.isDataFlavorSupported(DataFlavor.stringFlavor)) {
@@ -172,9 +176,9 @@ public class Table extends JTable {
             } catch (Exception e) {
                 return false;
             }
-            
+
             return true;
         }
-        
+
     }
 }

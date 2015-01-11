@@ -29,18 +29,17 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
-import java.io.StringReader;
 import javax.activation.ActivationDataFlavor;
 
 /**
  * Adres komórki, do copy paste
- * 
+ *
  * @author eplightning <eplightning at outlook dot com>
  */
 public class LocationTransfer extends Location implements Transferable, ClipboardOwner {
-    
+
     public static DataFlavor locFlavor = new ActivationDataFlavor(LocationTransfer.class, DataFlavor.javaJVMLocalObjectMimeType, "Location");
-    
+
     protected String plainText;
 
     public LocationTransfer(int col, int row, String plainText)
@@ -55,17 +54,17 @@ public class LocationTransfer extends Location implements Transferable, Clipboar
         if (obj == null) {
             return false;
         }
-        
+
         if (getClass() != obj.getClass() && obj.getClass() != Location.class) {
             return false;
         }
-        
+
         final Location other = (Location) obj;
-        
+
         if (this.column != other.column) {
             return false;
         }
-        
+
         return this.row == other.row;
     }
 
@@ -83,7 +82,7 @@ public class LocationTransfer extends Location implements Transferable, Clipboar
     public DataFlavor[] getTransferDataFlavors()
     {
         DataFlavor[] flavors = new DataFlavor[3];
-        
+
         flavors[0] = DataFlavor.stringFlavor;
         flavors[1] = locFlavor;
 
@@ -101,10 +100,10 @@ public class LocationTransfer extends Location implements Transferable, Clipboar
     {
         if (df.equals(locFlavor))
             return this;
-        
+
         if (df.equals(DataFlavor.stringFlavor))
             return getPlainText();
-        
+
         throw new UnsupportedFlavorException(df);
     }
 
@@ -112,5 +111,5 @@ public class LocationTransfer extends Location implements Transferable, Clipboar
     public void lostOwnership(Clipboard clpbrd, Transferable t)
     {
     }
-    
+
 }

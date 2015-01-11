@@ -23,15 +23,8 @@
  */
 package excel.sheet.parser;
 
-import excel.sheet.parser.expressions.AddressExpression;
-import excel.sheet.parser.expressions.CalcExpression;
-import excel.sheet.parser.expressions.FunctionExpression;
-import excel.sheet.parser.expressions.NumExpression;
-import excel.sheet.parser.expressions.RangeExpression;
-import excel.sheet.parser.expressions.function.AvgFunction;
-import excel.sheet.parser.expressions.function.StdDevFunction;
-import excel.sheet.parser.expressions.function.SumFunction;
-import excel.sheet.parser.expressions.function.VarFunction;
+import excel.sheet.parser.expressions.*;
+import excel.sheet.parser.expressions.function.*;
 import excel.sheet.token.Token;
 import excel.sheet.token.TokenType;
 import excel.sheet.token.tokens.*;
@@ -40,29 +33,29 @@ import java.util.ListIterator;
 
 /**
  * Lista tokenów -> Lista wyrażeń
- * 
+ *
  * @author eplightning <eplightning at outlook dot com>
  */
 public class Parser {
-    
+
     protected ListIterator<Token> iterator;
-    
+
     public ArrayList<Expression> parse(ArrayList<Token> tokens) throws ParserException
     {
         ArrayList<Expression> expressions = new ArrayList<>();
-        
+
         iterator = tokens.listIterator();
-        
+
         while (iterator.hasNext()) {
             Token tok = iterator.next();
-            
+
             if (tok.type() == TokenType.CALCULATOR_PORTION) {
                 CalcToken ctok = (CalcToken) tok;
-                
+
                 expressions.add(new CalcExpression(ctok.getExpr()));
             } else if (tok.type() == TokenType.FUNCTION_START) {
                 FunctionToken ftok = (FunctionToken) tok;
-                
+
                 if (ftok.getName().equals("$")) {
                     expressions.add(readAddress(ftok));
                 } else {
@@ -72,81 +65,81 @@ public class Parser {
                 throw new ParserException("Invalid token outside of function");
             }
         }
-        
+
         iterator = null;
-        
+
         return expressions;
     }
-    
+
     protected FunctionExpression createFunction(AddressExpression addr, String name) throws ParserException
     {
         if (name.equals("sum") || name.equals("suma"))
             return new SumFunction(addr);
-        
+
         if (name.equals("avg") || name.equals("average"))
             return new AvgFunction(addr);
-        
+
         if (name.equals("variance") || name.equals("var"))
             return new VarFunction(addr);
-        
+
         if (name.equals("std_dev") || name.equals("stddev"))
             return new StdDevFunction(addr);
-        
+
         throw new ParserException(String.format("Unknown function %s", name));
     }
-    
+
     protected AddressExpression readAddress(FunctionToken start) throws ParserException
     {
         Expression col = readAddressParam(false);
         Expression row = readAddressParam(true);
-        
+
         // poprzedni elem. jako że readAddressParam odczytuje też koniec funkcji, a nam potrzebny ten token!
         // też mamy gwarancje że to FunctionEndToken bo by readAddressParam wywalił wyjątek
         FunctionEndToken tok = (FunctionEndToken) iterator.previous();
         iterator.next(); // fajnie by było gdyby java po prostu miała ludzkei current()
-        
+
         return new AddressExpression(col, row, start.isClosed(), tok.isClosed());
     }
-    
+
     protected Expression readAddressParam(boolean row) throws ParserException
     {
         // first part of the param
         if (!iterator.hasNext())
             throw new ParserException("Unexpected EOL while reading address param #1");
         Token tok = iterator.next();
-        
+
         Expression left = readAddressParamPart(tok);
-        
+
         // optionally second part of the param, or end
         if (!iterator.hasNext())
             throw new ParserException("Unexpected EOL while reading address param #1");
         tok = iterator.next();
-        
+
         if ((tok.type() == TokenType.FUNCTION_END && row) || (tok.type() == TokenType.COMMA && !row)) {
             return left;
         } else if (tok.type() != TokenType.RANGE) {
             throw new ParserException("Unexpected token while reading address param #2, expected range token");
         }
-        
+
         // second part of the param
         if (!iterator.hasNext())
             throw new ParserException("Unexpected EOL while reading address param #2");
         tok = iterator.next();
-        
+
         Expression right = readAddressParamPart(tok);
-        
+
         // let's check if it's the end again
         if (!iterator.hasNext())
             throw new ParserException("Unexpected EOL while reading address param #2");
         tok = iterator.next();
-        
+
         if ((tok.type() == TokenType.FUNCTION_END && row) || (tok.type() == TokenType.COMMA && !row)) {
             return new RangeExpression(left, right);
         }
-        
+
         throw new ParserException("Unexpected token while reading address param #2, expected comma or func end");
     }
-    
+
     protected Expression readAddressParamPart(Token tok) throws ParserException
     {
         if (tok.type() == TokenType.FUNCTION_START) {
@@ -159,35 +152,35 @@ public class Parser {
         } else if (tok.type() == TokenType.INTEGER) {
             return new NumExpression((IntegerToken) tok);
         }
-        
+
         throw new ParserException("Unexpected token while reading address param, expected address or integer");
     }
-    
+
     protected FunctionExpression readFunction(FunctionToken name) throws ParserException
     {
         if (!iterator.hasNext())
             throw new ParserException("Unexpected EOL while reading function, expected address");
-        
+
         Token tok = iterator.next();
-        
+
         if (tok.type() != TokenType.FUNCTION_START)
             throw new ParserException("Unexpected token while reading function, expected address");
-        
+
         FunctionToken tok2 = (FunctionToken) tok;
-        
+
         if (!tok2.getName().equals("$"))
             throw new ParserException("Unexpected function while reading function, expected address");
-        
+
         AddressExpression addr = readAddress(tok2);
-        
+
         if (!iterator.hasNext())
             throw new ParserException("Unexpected EOL while reading function, expected function end");
-        
+
         tok = iterator.next();
-        
+
         if (tok.type() != TokenType.FUNCTION_END)
             throw new ParserException("Unexpected token while reading function, expected function end");
-        
+
         return createFunction(addr, name.getName());
     }
 }

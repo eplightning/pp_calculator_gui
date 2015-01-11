@@ -30,25 +30,23 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
 /**
  * Format CSV
- * 
+ *
  * @author eplightning <eplightning at outlook dot com>
  */
 public class SheetFormatCsv implements SheetFormat {
 
     /**
      * Wczytywanie danych z pliku
-     * 
+     *
      * @param  file Plik  do wczytania
      * @return Struktura danych
-     * @throws IOException 
+     * @throws IOException
      */
     @Override
     public ExportImportData loadFile(File file) throws IOException
@@ -64,18 +62,21 @@ public class SheetFormatCsv implements SheetFormat {
         StringBuilder text = new StringBuilder();
         int row = 1;
         int column = 1;
-        
+
         // przynajmniej jedna kolumna
         data.setColumns(1);
 
         // znak po znaku
         while ((character = reader.read()) != -1) {
+            // jeśli jesteśmy wewnątrz " to czytamy wartość komórki
             if (insideText) {
+                // jeśli był przed tym slash to traktujemy jak zwykły znak
                 if (slash) {
                     text.appendCodePoint(character);
                     slash = false;
                 } else if (character == '\\') {
                     slash = true;
+                // nie było slasha i jest ", więc uznajemy że to koniec wartości
                 } else if (character == '"') {
                     insideText = false;
                     stringRead = true;
@@ -108,57 +109,57 @@ public class SheetFormatCsv implements SheetFormat {
                 throw new IOException("Invalid character between cells");
             }
         }
-        
+
         reader.close();
 
         data.setRows(row);
-        
+
         return data;
     }
 
     /**
      * Zapis danych do pliku
-     * 
+     *
      * @param file Plik do zapisania
      * @param data Struktura danych
-     * @throws IOException 
+     * @throws IOException
      */
     @Override
     public void saveFile(File file, ExportImportData data) throws IOException
     {
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));
-        
+
         for (int i = 1; i <= data.getRows(); i++) {
             for (int j = 1; j <= data.getColumns(); j++) {
                 if (j != 1)
                     writer.write(',');
-        
+
                 // pobieramy wartość
                 String val = data.getCells().get(new ExportImportLocation(j, i));
-                
+
                 // jeśli nie znaleźliśmy to znaczy że puste
                 if (val != null && !val.isEmpty()) {
                     writer.write('"');
-                    
+
                     final int len = val.length();
-                    
+
                     for (int k = 0; k < len; k++) {
                         char character = val.charAt(k);
-                        
+
                         if (character == '"' || character == '\\') {
                             writer.write('\\');
                         }
-                        
+
                         writer.write(character);
                     }
-                    
+
                     writer.write('"');
                 }
             }
-            
+
             writer.write('\n');
         }
-        
+
         writer.close();
     }
 
