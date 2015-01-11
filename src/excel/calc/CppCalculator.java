@@ -102,6 +102,9 @@ public class CppCalculator implements Calculator {
     @Override
     public String calculateExpression(String input) throws ArithmeticException
     {
+        if (input.isEmpty())
+            return "";
+
         calculatorLock.lock();
 
         try {
