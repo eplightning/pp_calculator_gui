@@ -37,18 +37,15 @@ import java.io.IOException;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.JToolBar;
-import javax.swing.UIManager;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  * Główne okno aplikacji
- * 
+ *
  * @author eplightning <eplightning at outlook dot com>
  */
 public class ExcelApp extends JFrame {
@@ -56,32 +53,32 @@ public class ExcelApp extends JFrame {
     /**
      * Instancja kalkulatora
      */
-    protected Calculator calc;
-    
+    private Calculator calc;
+
     /**
      * Okienko logowania
      */
-    protected LogWindow logWnd;
-    
+    private LogWindow logWnd;
+
     /**
      * Obecnie otwarty plik
      */
-    protected File openedFile;
-    
+    private File openedFile;
+
     /**
      * Arkusz
      */
-    protected Sheet sheet;
-    
+    private Sheet sheet;
+
     /**
      * Pasek dolny
      */
-    protected StatusBar statusBar;
-    
+    private StatusBar statusBar;
+
     /**
      * Toolbar górny
      */
-    protected JToolBar toolBar;
+    private JToolBar toolBar;
 
     /**
      * Entry point programu
@@ -120,7 +117,7 @@ public class ExcelApp extends JFrame {
         // okienko logowania
         logWnd = new LogWindow();
         logWnd.setVisible(false);
-        
+
         // próbujemy utworzyć kalkulator
         // jak nie da rady to kończymy bo to sensu nie ma
         try {
@@ -128,7 +125,7 @@ public class ExcelApp extends JFrame {
         } catch (IOException ex) {
             System.exit(1);
         }
-        
+
         // pusty arkusz
         sheet = new Sheet(calc, logWnd, statusBar);
         getContentPane().add(sheet, BorderLayout.CENTER);
@@ -136,20 +133,50 @@ public class ExcelApp extends JFrame {
 
     /**
      * Zastąpienie starego arkusza
-     * 
+     *
      * @param newSheet Nowy arkusz
      */
     private void replaceSheet(Sheet newSheet)
     {
         Container c = getContentPane();
-        
+
         c.remove(sheet);
-        
+
         sheet = newSheet;
         c.add(sheet, BorderLayout.CENTER);
         validate();
     }
-    
+
+    /**
+     * Zapis arkusza do pliku
+     *
+     * @param output  Plik
+     * @param factory Fabryka formatów
+     */
+    private void saveSheet(File output, SheetFormatFactory factory)
+    {
+        ExportImportData data = sheet.export();
+
+        logWnd.addLine("Zapisywanie pliku " + output.getName());
+        statusBar.setState("Zapisywanie ...");
+
+        // wczytywanie danych z pliku
+        try {
+            SheetFormat format = factory.makeFormat(output);
+
+            format.saveFile(output, data);
+        } catch (IOException e) {
+            logWnd.addLine(e.getMessage());
+            statusBar.setState("Błąd podczas zapisu pliku, szczegóły w logu");
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Błąd zapisywania pliku", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        statusBar.setState("Gotowe");
+
+        sheet.setModified(false);
+    }
+
     /**
      * Tworzenie kontrolek głównych
      */
@@ -194,7 +221,7 @@ public class ExcelApp extends JFrame {
         // status bar
         statusBar = new StatusBar();
         c.add(statusBar, BorderLayout.PAGE_END);
-        
+
         // pusta przestrzeń lewo prawo
         c.add(Box.createHorizontalStrut(1), BorderLayout.LINE_START);
         c.add(Box.createHorizontalStrut(1), BorderLayout.LINE_END);
@@ -203,150 +230,133 @@ public class ExcelApp extends JFrame {
     /**
      * Nowy arkusz
      */
-    class NewSheetAction implements ActionListener {
+    private class NewSheetAction implements ActionListener {
+
         @Override
         public void actionPerformed(ActionEvent ae)
         {
             if (sheet.isModified()) {
-                int option = JOptionPane.showConfirmDialog(null, "Zmiany nie zostały zapisane, czy na pewno chcesz otworzyć inny plik?", "Potwierdzenie", JOptionPane.YES_NO_OPTION);
-            
+                int option = JOptionPane.showConfirmDialog(null, "Zmiany nie zostały zapisane, czy na pewno chcesz utworzyć nowy arkusz?", "Potwierdzenie", JOptionPane.YES_NO_OPTION);
+
                 if (option == JOptionPane.NO_OPTION) {
                     return;
                 }
             }
-            
+
             openedFile = null;
             replaceSheet(new Sheet(calc, logWnd, statusBar));
         }
+
     }
 
     /**
      * Otwórz arkusz
      */
-    class OpenSheetAction implements ActionListener {
+    private class OpenSheetAction implements ActionListener {
+
         @Override
         public void actionPerformed(ActionEvent ae)
         {
             if (sheet.isModified()) {
                 int option = JOptionPane.showConfirmDialog(null, "Zmiany nie zostały zapisane, czy na pewno chcesz otworzyć inny plik?", "Potwierdzenie", JOptionPane.YES_NO_OPTION);
-            
+
                 if (option == JOptionPane.NO_OPTION) {
                     return;
                 }
             }
-            
+
+            // fabryka formatów
+            SheetFormatFactory factory = new SheetFormatFactory();
+
             // dialog wyboru pliku
             JFileChooser picker = new JFileChooser();
-            picker.addChoosableFileFilter(new FileNameExtensionFilter("CSV file", "csv"));
+            factory.addFilters(picker);
+
             int result = picker.showOpenDialog(ExcelApp.this);
-            
+
             // zatwierdzone
             if (result == JFileChooser.APPROVE_OPTION) {
                 ExportImportData data;
-                
+
                 logWnd.addLine("Wczytywanie pliku " + picker.getSelectedFile().getName());
                 statusBar.setState("Wczytywanie ...");
-                
+
                 // wczytywanie danych z pliku
                 try {
-                    SheetFormatFactory factory = new SheetFormatFactory();
                     SheetFormat format = factory.makeFormat(picker.getSelectedFile());
-                    
+
                     data = format.loadFile(picker.getSelectedFile());
                 } catch (IOException e) {
                     logWnd.addLine(e.getMessage());
+                    statusBar.setState("Błąd podczas wczytywania pliku, szczegóły w logu");
                     JOptionPane.showMessageDialog(null, e.getMessage(), "Błąd wczytywania pliku", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                
+
                 statusBar.setState("Gotowe");
-                
+
                 Sheet newSheet = new Sheet(calc, logWnd, statusBar, data);
                 replaceSheet(newSheet);
                 openedFile = picker.getSelectedFile();
             }
         }
+
     }
 
     /**
      * Zapisz arkusz
      */
-    class SaveSheetAction implements ActionListener {
+    private class SaveSheetAction implements ActionListener {
+
         @Override
         public void actionPerformed(ActionEvent ae)
         {
+            // jeśli plik nie otwarty to przekierowujemy na akcje zapisz jako
             if (openedFile == null) {
                 SaveAsSheetAction passingTheEvent = new SaveAsSheetAction();
-                
+
                 passingTheEvent.actionPerformed(ae);
                 return;
             }
-            
-            ExportImportData data = sheet.export();
 
-            logWnd.addLine("Zapisywanie pliku " + openedFile.getName());
-            statusBar.setState("Zapisywanie ...");
+            // fabryka formatów
+            SheetFormatFactory factory = new SheetFormatFactory();
 
-            // wczytywanie danych z pliku
-            try {
-                SheetFormatFactory factory = new SheetFormatFactory();
-                SheetFormat format = factory.makeFormat(openedFile);
-
-                format.saveFile(openedFile, data);
-            } catch (IOException e) {
-                logWnd.addLine(e.getMessage());
-                JOptionPane.showMessageDialog(null, e.getMessage(), "Błąd zapisywania pliku", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            statusBar.setState("Gotowe");
-
-            sheet.setModified(false);
+            // zapis
+            saveSheet(openedFile, factory);
         }
+
     }
 
     /**
      * Zapisz arkusz jako
      */
-    class SaveAsSheetAction implements ActionListener {
+    private class SaveAsSheetAction implements ActionListener {
+
         @Override
         public void actionPerformed(ActionEvent ae)
         {
+            // fabryka formatów
+            SheetFormatFactory factory = new SheetFormatFactory();
+
             // dialog wyboru pliku
             JFileChooser picker = new JFileChooser();
-            picker.addChoosableFileFilter(new FileNameExtensionFilter("CSV file", "csv"));
+            factory.addFilters(picker);
+
             int result = picker.showSaveDialog(ExcelApp.this);
-            
+
             // zatwierdzone
-            if (result == JFileChooser.APPROVE_OPTION) {
-                ExportImportData data = sheet.export();
-                
-                logWnd.addLine("Zapisywanie pliku " + picker.getSelectedFile().getName());
-                statusBar.setState("Zapisywanie ...");
-                
-                // wczytywanie danych z pliku
-                try {
-                    SheetFormatFactory factory = new SheetFormatFactory();
-                    SheetFormat format = factory.makeFormat(picker.getSelectedFile());
-                    
-                    format.saveFile(picker.getSelectedFile(), data);
-                } catch (IOException e) {
-                    logWnd.addLine(e.getMessage());
-                    JOptionPane.showMessageDialog(null, e.getMessage(), "Błąd zapisywania pliku", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                
-                statusBar.setState("Gotowe");
-                
-                sheet.setModified(false);
-            }
+            if (result == JFileChooser.APPROVE_OPTION)
+                saveSheet(picker.getSelectedFile(), factory);
         }
+
     }
 
     /**
      * Konsola logowania
      */
-    class DebugAction implements ActionListener {
+    private class DebugAction implements ActionListener {
+
         @Override
         public void actionPerformed(ActionEvent ae)
         {
@@ -355,6 +365,7 @@ public class ExcelApp extends JFrame {
                 logWnd.setVisible(true);
             }
         }
+
     }
 
 }

@@ -25,34 +25,48 @@ package excel.exportimport.formats;
 
 import java.io.File;
 import java.io.IOException;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  * Fabryka formatów
- * 
+ *
  * @author eplightning <eplightning at outlook dot com>
  */
 public class SheetFormatFactory {
-   
+
+    /**
+     * Dodaje filtry do pickera
+     *
+     * @param picker Picker plików
+     */
+    public void addFilters(JFileChooser picker)
+    {
+        picker.addChoosableFileFilter(new FileNameExtensionFilter("CSV file", "csv"));
+    }
+
     /**
      * Tworzymy format na podstawie rozszerzenia
-     * 
+     *
      * @param file
      * @return Format
-     * @throws IOException 
+     * @throws IOException
      */
-    public SheetFormat makeFormat(File file) throws IOException {
+    public SheetFormat makeFormat(File file) throws IOException
+    {
+        // próbujemy zdobyć rozszerzenie pliku
         int dotPosition = file.getName().lastIndexOf('.');
-        
-        if (dotPosition <= 0) {
+
+        if (dotPosition <= 0)
             throw new IOException("Invalid file extension");
-        }
-        
+
         String extension = file.getName().substring(dotPosition + 1);
-        
+
+        // w zależności od rozszerzenia tworzymy obiekt formatu
         switch (extension) {
             case "csv":
                 return new SheetFormatCsv();
-                
+
             default:
                 throw new IOException("Unsupported file extension");
         }
